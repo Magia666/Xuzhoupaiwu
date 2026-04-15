@@ -1,4 +1,4 @@
-import { NavLink, Outlet, Link } from "react-router-dom";
+import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import { 
   LayoutDashboard, 
   MapPin, 
@@ -14,8 +14,8 @@ import {
 import { cn } from "../lib/utils";
 
 const navItems = [
-  { name: "一张图监管", path: "/", icon: LayoutDashboard },
-  { name: "排污口管理", path: "/outfalls", icon: MapPin },
+  { name: "工作台", path: "/", icon: LayoutDashboard },
+  { name: "一口一档", path: "/outfalls", icon: MapPin },
   { name: "在线监测", path: "/monitoring", icon: Activity },
   { name: "预警告警", path: "/warnings", icon: AlertTriangle },
   { name: "运维管理", path: "/maintenance", icon: Wrench },
@@ -23,6 +23,9 @@ const navItems = [
 ];
 
 export default function Layout() {
+  const location = useLocation();
+  const currentNav = navItems.find(item => item.path === location.pathname) || navItems[0];
+
   return (
     <div className="flex h-screen w-full bg-[#F0F2F5] font-sans text-[#333333]">
       {/* Sidebar */}
@@ -82,8 +85,7 @@ export default function Layout() {
         <header className="h-16 bg-white shadow-sm flex items-center justify-between px-6 z-10">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-semibold text-[#333333]">
-              {/* Title will be dynamic based on route, handled in pages for simplicity or here if we use useLocation */}
-              工作台
+              {currentNav.name}
             </h2>
           </div>
           <div className="flex items-center gap-6">

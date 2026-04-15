@@ -18,11 +18,41 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { mockStats, mockOutfalls, mockWarnings, mockTrendData } from "../lib/mockData";
 import { cn } from "../lib/utils";
 
+// Fix Leaflet's default icon path issues with webpack/vite
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Custom icons for different statuses
+const createIcon = (color: string) => {
+  return L.divIcon({
+    className: 'custom-div-icon',
+    html: `<div class="w-4 h-4 rounded-full border-2 border-white shadow-md" style="background-color: ${color};"></div>`,
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    popupAnchor: [0, -8]
+  });
+};
+
+const icons = {
+  normal: createIcon('#00A896'),
+  warning: createIcon('#FF4D4F'),
+  offline: createIcon('#94A3B8'),
+  maintenance: createIcon('#FA8C16')
+};
+
 export default function Dashboard() {
   const [selectedOutfall, setSelectedOutfall] = useState<string | null>(null);
+  const defaultCenter: [number, number] = [34.2648, 117.1838]; // Xuzhou center
 
   return (
     <div className="h-full flex flex-col gap-6">
@@ -38,9 +68,9 @@ export default function Dashboard() {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
         {/* Left Column: Map & Outfalls */}
         <div className="lg:col-span-2 flex flex-col gap-6 min-h-0">
-          {/* Map Area (Simulated) */}
-          <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative flex flex-col">
-            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white z-10">
+          {/* Map Area */}
+          <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden relative flex flex-col z-0">
+            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-white z-10 relative">
               <h3 className="font-semibold text-[#333333]">全区排污口分布图</h3>
               <div className="flex gap-2">
                 <div className="relative">
@@ -57,46 +87,42 @@ export default function Dashboard() {
               </div>
             </div>
             
-            {/* Simulated Map Background */}
-            <div className="flex-1 bg-[#E8F4F8] relative overflow-hidden">
-              {/* Grid lines to simulate map tiles */}
-              <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(#CBD5E1 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-              
-              {/* Simulated River */}
-              <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                <path d="M 0,100 C 150,150 300,50 500,200 S 700,100 1000,300" fill="none" stroke="#93C5FD" strokeWidth="20" strokeLinecap="round" opacity="0.6" />
-                <path d="M 200,0 C 250,100 150,250 300,400 S 500,500 600,600" fill="none" stroke="#93C5FD" strokeWidth="15" strokeLinecap="round" opacity="0.6" />
-              </svg>
-
-              {/* Outfall Markers */}
-              {mockOutfalls.map((outfall, i) => {
-                // Determine color based on status
-                let colorClass = "bg-[#00A896]"; // normal
-                if (outfall.status === 'warning') colorClass = "bg-[#FF4D4F] animate-pulse";
-                if (outfall.status === 'offline') colorClass = "bg-[#94A3B8]";
-                if (outfall.status === 'maintenance') colorClass = "bg-[#FA8C16]";
-
-                // Simulated positions
-                const top = `${20 + i * 20}%`;
-                const left = `${30 + i * 15}%`;
-
-                return (
-                  <div 
-                    key={outfall.id}
-                    className="absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group"
-                    style={{ top, left }}
-                    onClick={() => setSelectedOutfall(outfall.id)}
-                  >
-                    <div className={cn("w-4 h-4 rounded-full border-2 border-white shadow-md", colorClass)}></div>
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-white px-3 py-2 rounded shadow-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                      <p className="font-bold text-gray-800">{outfall.name}</p>
-                      <p className="text-gray-500">{outfall.type}</p>
-                      <p className="text-[#0056B3] font-medium mt-1">水质: {outfall.waterQuality}</p>
-                    </div>
-                  </div>
-                )
-              })}
+            <div className="flex-1 relative z-0">
+              <MapContainer 
+                center={defaultCenter} 
+                zoom={10} 
+                style={{ height: '100%', width: '100%' }}
+              >
+                <TileLayer
+                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                />
+                {mockOutfalls.map((outfall) => {
+                  // Fallback to default center if lat/lng are missing
+                  const position: [number, number] = outfall.lat && outfall.lng 
+                    ? [outfall.lat, outfall.lng] 
+                    : defaultCenter;
+                    
+                  return (
+                    <Marker 
+                      key={outfall.id} 
+                      position={position}
+                      icon={icons[outfall.status as keyof typeof icons] || icons.normal}
+                      eventHandlers={{
+                        click: () => setSelectedOutfall(outfall.id),
+                      }}
+                    >
+                      <Popup>
+                        <div className="text-sm min-w-[150px]">
+                          <p className="font-bold text-gray-800 mb-1">{outfall.name}</p>
+                          <p className="text-gray-500 text-xs mb-1">{outfall.type}</p>
+                          <p className="text-[#0056B3] font-medium text-xs">水质: {outfall.waterQuality}</p>
+                        </div>
+                      </Popup>
+                    </Marker>
+                  );
+                })}
+              </MapContainer>
             </div>
           </div>
         </div>

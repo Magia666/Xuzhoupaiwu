@@ -1,658 +1,174 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, Filter, Eye, Edit, Trash2, X, CheckCircle, XCircle, QrCode, MapPin, Upload, Download, Printer, FileText, Activity, ShieldAlert, Map, MessageSquare, CheckSquare } from "lucide-react";
+import { Plus, Search, Eye, Edit, QrCode, MapPin, Download, FileText, Activity, MessageSquare, CheckSquare, X } from "lucide-react";
 import { mockOutfalls, mockInspections, mockTraceability, mockRemediations, mockSignboards } from "../lib/mockData";
 import { cn } from "../lib/utils";
-import { QRCodeSVG } from "qrcode.react";
 
-function OutfallLedger() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [auditFilter, setAuditFilter] = useState("");
-  const [cancelFilter, setCancelFilter] = useState("active");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  // Form Modal State
-  const [showFormModal, setShowFormModal] = useState(false);
-  const [formMode, setFormMode] = useState<'add' | 'edit' | 'review' | 'view'>('view');
-  const [activeTab, setActiveTab] = useState('basic');
-  const [currentOutfall, setCurrentOutfall] = useState<any>(null);
-
-  // QR Modal State
-  const [showQRModal, setShowQRModal] = useState(false);
-  const [qrOutfall, setQrOutfall] = useState<any>(null);
-
-  // Simple Action Modal State
-  const [showActionModal, setShowActionModal] = useState(false);
-  const [actionContent, setActionContent] = useState("");
-
-  const filteredOutfalls = useMemo(() => {
-    return mockOutfalls.filter((outfall) => {
-      const matchesSearch = outfall.name.includes(searchTerm) || outfall.id.includes(searchTerm);
-      const matchesType = typeFilter ? outfall.type === typeFilter : true;
-      const matchesAudit = auditFilter ? outfall.auditStatus === auditFilter : true;
-      const matchesCancel = cancelFilter ? outfall.cancelStatus === cancelFilter : true;
-      return matchesSearch && matchesType && matchesAudit && matchesCancel;
-    });
-  }, [searchTerm, typeFilter, auditFilter, cancelFilter]);
-
-  const totalPages = Math.ceil(filteredOutfalls.length / itemsPerPage) || 1;
-  const currentData = filteredOutfalls.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  const handleOpenForm = (mode: 'add' | 'edit' | 'review' | 'view', outfall?: any) => {
-    setFormMode(mode);
-    setCurrentOutfall(outfall || {});
-    setActiveTab('basic');
-    setShowFormModal(true);
-  };
-
-  const handleOpenQR = (outfall: any) => {
-    setQrOutfall(outfall);
-    setShowQRModal(true);
-  };
-
-  const handleSimpleAction = (action: string, outfall: any) => {
-    setActionContent(`${action}：${outfall.name}`);
-    setShowActionModal(true);
-  };
-
-  const renderFormTab = () => {
-    const isReadOnly = formMode === 'view' || formMode === 'review';
-    
-    switch (activeTab) {
-      case 'basic':
-        return (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">排口名称 <span className="text-red-500">*</span></label>
-              <input type="text" defaultValue={currentOutfall?.name} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">唯一编码</label>
-              <input type="text" defaultValue={currentOutfall?.id} disabled placeholder="系统自动生成" className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 sm:text-sm" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">排口类型 <span className="text-red-500">*</span></label>
-              <select defaultValue={currentOutfall?.type} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50">
-                <option value="工业排污口">工业排污口</option>
-                <option value="城镇污水处理厂排污口">城镇污水处理厂排污口</option>
-                <option value="农业排口">农业排口</option>
-                <option value="其他排口">其他排口</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">流域名称</label>
-              <input type="text" defaultValue={currentOutfall?.basin} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">入河类型</label>
-              <select defaultValue={currentOutfall?.entryType} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50">
-                <option value="明渠">明渠</option>
-                <option value="暗管">暗管</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">入流方式</label>
-              <select defaultValue={currentOutfall?.flowType} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50">
-                <option value="连续">连续</option>
-                <option value="间歇">间歇</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">口门类型</label>
-              <input type="text" defaultValue={currentOutfall?.gateType} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">受纳水体</label>
-              <input type="text" defaultValue={currentOutfall?.receivingWater || currentOutfall?.river} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">排水特征</label>
-              <textarea defaultValue={currentOutfall?.drainageChar} disabled={isReadOnly} rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-          </div>
-        );
-      case 'location':
-        return (
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">所属区域</label>
-              <input type="text" defaultValue={currentOutfall?.region} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">所属网格</label>
-              <input type="text" defaultValue={currentOutfall?.grid} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">详细地址</label>
-              <input type="text" defaultValue={currentOutfall?.address} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">经度</label>
-              <input type="number" defaultValue={currentOutfall?.lng} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">纬度</label>
-              <div className="flex gap-2">
-                <input type="number" defaultValue={currentOutfall?.lat} disabled={isReadOnly} className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-                {!isReadOnly && (
-                  <button type="button" className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 text-gray-700 flex items-center gap-1">
-                    <MapPin className="w-4 h-4" /> 选点
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        );
-      case 'responsibility':
-        return (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">责任主体</label>
-              <input type="text" defaultValue={currentOutfall?.responsibleEntity} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">行业主管部门</label>
-              <input type="text" defaultValue={currentOutfall?.industryDept} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">责任人</label>
-              <input type="text" defaultValue={currentOutfall?.manager} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">联系方式</label>
-              <input type="text" defaultValue={currentOutfall?.phone} disabled={isReadOnly} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm disabled:bg-gray-50" />
-            </div>
-          </div>
-        );
-      case 'attachments':
-        return (
-          <div className="space-y-4">
-            {!isReadOnly && (
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-500 hover:bg-gray-50 hover:border-[#0056B3] transition-colors cursor-pointer">
-                <Upload className="w-8 h-8 mb-2 text-gray-400" />
-                <p className="text-sm font-medium">点击或拖拽文件上传</p>
-                <p className="text-xs mt-1">支持现场照片、位置图、审批文件等 (Max: 10MB)</p>
-              </div>
-            )}
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <h4 className="text-sm font-medium text-gray-700 mb-3">已上传附件</h4>
-              {currentOutfall?.attachments?.length > 0 ? (
-                <ul className="space-y-2">
-                  {/* Mock attachments */}
-                  <li className="flex items-center justify-between text-sm bg-white p-2 rounded border border-gray-100">
-                    <span className="text-[#0056B3] hover:underline cursor-pointer">现场照片.jpg</span>
-                    {!isReadOnly && <button className="text-red-500 hover:text-red-700"><X className="w-4 h-4" /></button>}
-                  </li>
-                </ul>
-              ) : (
-                <p className="text-sm text-gray-500 text-center py-2">暂无附件</p>
-              )}
-            </div>
-          </div>
-        );
-      case 'review':
-        return (
-          <div className="space-y-4">
-            {formMode === 'review' ? (
-              <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">审核结果</label>
-                  <div className="flex gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="radio" name="auditResult" value="approve" className="text-[#0056B3] focus:ring-[#0056B3]" defaultChecked />
-                      <span className="text-sm">通过</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="radio" name="auditResult" value="reject" className="text-[#0056B3] focus:ring-[#0056B3]" />
-                      <span className="text-sm">驳回</span>
-                    </label>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">审核意见 (驳回必填)</label>
-                  <textarea rows={3} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm" placeholder="请输入审核意见..."></textarea>
-                </div>
-              </>
-            ) : (
-              <div className="bg-red-50 border border-red-100 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-red-800 mb-2 flex items-center gap-2">
-                  <XCircle className="w-4 h-4" /> 审核未通过
-                </h4>
-                <p className="text-sm text-red-600">驳回原因：位置信息不准确，请重新核对经纬度。</p>
-                <p className="text-xs text-red-400 mt-2">审核人：系统管理员 | 时间：2026-03-17 10:00</p>
-              </div>
-            )}
-          </div>
-        );
-      case 'inspections':
-        return (
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">排查记录</h4>
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <p className="text-sm text-gray-600">2026-03-18 09:00 - 现场人工排查 - 异常 (发现有明显工业废水排出，伴有异味。)</p>
-            </div>
-          </div>
-        );
-      case 'traceability':
-        return (
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">溯源信息</h4>
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <p className="text-sm text-gray-600">污染单位: 某某化工厂</p>
-              <p className="text-sm text-gray-600 mt-1">排污通道: 暗管直排</p>
-              <p className="text-sm text-gray-600 mt-1">污染物: COD, 氨氮</p>
-            </div>
-          </div>
-        );
-      case 'remediation':
-        return (
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3">整治方案</h4>
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <p className="text-sm text-gray-600">整治目标: 消除劣V类水体排放</p>
-              <p className="text-sm text-gray-600 mt-1">责任单位: 某某化工厂</p>
-              <p className="text-sm text-gray-600 mt-1">整治进度: <span className="text-blue-600 font-medium">整治中</span></p>
-            </div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
+// Simple Toast component
+function Toast({ message, onClose }: { message: string, onClose: () => void }) {
   return (
-    <div className="h-full flex flex-col gap-6 relative">
-      {/* Header & Actions */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="搜索排口名称/编码..." 
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] w-64"
-            />
-          </div>
-          <select 
-            value={typeFilter}
-            onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
-          >
-            <option value="">排口类型</option>
-            <option value="工业排污口">工业排污口</option>
-            <option value="城镇污水处理厂排污口">城镇污水处理厂排污口</option>
-            <option value="农业排口">农业排口</option>
-            <option value="其他排口">其他排口</option>
-          </select>
-          <select 
-            value={auditFilter}
-            onChange={(e) => { setAuditFilter(e.target.value); setCurrentPage(1); }}
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
-          >
-            <option value="">审核状态</option>
-            <option value="approved">已建档(审核通过)</option>
-            <option value="pending">待审核</option>
-            <option value="rejected">已驳回</option>
-          </select>
-          <select 
-            value={cancelFilter}
-            onChange={(e) => { setCancelFilter(e.target.value); setCurrentPage(1); }}
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
-          >
-            <option value="">注销状态</option>
-            <option value="active">正常</option>
-            <option value="cancelled">已注销</option>
-          </select>
-          <button 
-            onClick={() => { setSearchTerm(""); setTypeFilter(""); setAuditFilter(""); setCancelFilter("active"); setCurrentPage(1); }}
-            className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition-colors"
-            title="重置过滤"
-          >
-            <Filter className="w-4 h-4" />
-          </button>
-        </div>
-        <button 
-          onClick={() => handleOpenForm('add')}
-          className="flex items-center gap-2 bg-[#0056B3] hover:bg-[#004494] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
-        >
-          <Plus className="w-4 h-4" />
-          信息录入
-        </button>
-      </div>
-
-      {/* Table */}
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-0">
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
-                <th className="py-3 px-4 font-medium">排口编码</th>
-                <th className="py-3 px-4 font-medium">排口名称</th>
-                <th className="py-3 px-4 font-medium">排口类型</th>
-                <th className="py-3 px-4 font-medium">责任人</th>
-                <th className="py-3 px-4 font-medium">审核状态</th>
-                <th className="py-3 px-4 font-medium">注销状态</th>
-                <th className="py-3 px-4 font-medium text-right">操作</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm divide-y divide-gray-100">
-              {currentData.length > 0 ? currentData.map((outfall) => (
-                <tr key={outfall.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-3 px-4 font-mono text-gray-600">{outfall.id}</td>
-                  <td className="py-3 px-4 font-medium text-gray-900">{outfall.name}</td>
-                  <td className="py-3 px-4 text-gray-600">
-                    <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-xs">
-                      {outfall.type}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600">
-                    <div>{outfall.manager}</div>
-                    <div className="text-xs text-gray-400">{outfall.phone}</div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className={cn(
-                      "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium",
-                      outfall.auditStatus === 'approved' ? "bg-green-50 text-green-700" :
-                      outfall.auditStatus === 'pending' ? "bg-blue-50 text-blue-700" :
-                      "bg-red-50 text-red-700"
-                    )}>
-                      {outfall.auditStatus === 'approved' ? <CheckCircle className="w-3 h-3" /> :
-                       outfall.auditStatus === 'pending' ? <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span> :
-                       <XCircle className="w-3 h-3" />}
-                      {outfall.auditStatus === 'approved' ? '已建档' :
-                       outfall.auditStatus === 'pending' ? '待审核' : '已驳回'}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className={cn(
-                      "inline-flex items-center px-2 py-1 rounded-md text-xs font-medium",
-                      outfall.cancelStatus === 'active' ? "text-gray-600" : "bg-gray-100 text-gray-500"
-                    )}>
-                      {outfall.cancelStatus === 'active' ? '正常' : '已注销'}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => handleOpenForm('view', outfall)} className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="查看详情">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      
-                      {outfall.auditStatus === 'pending' && (
-                        <button onClick={() => handleOpenForm('review', outfall)} className="p-1.5 text-blue-500 hover:text-blue-700 transition-colors" title="审核">
-                          <CheckCircle className="w-4 h-4" />
-                        </button>
-                      )}
-
-                      {outfall.cancelStatus === 'active' && (
-                        <button onClick={() => handleOpenForm('edit', outfall)} className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title={outfall.auditStatus === 'approved' ? "申请修改" : "编辑"}>
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      )}
-
-                      {outfall.auditStatus === 'approved' && outfall.cancelStatus === 'active' && (
-                        <>
-                          <button onClick={() => handleOpenQR(outfall)} className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="二维码">
-                            <QrCode className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleSimpleAction("申请注销", outfall)} className="p-1.5 text-gray-400 hover:text-red-600 transition-colors" title="注销">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )) : (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-500">暂无数据</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        
-        {/* Pagination */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-          <div>共 {filteredOutfalls.length} 条记录</div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              上一页
-            </button>
-            {Array.from({ length: totalPages }).map((_, i) => (
-              <button 
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={cn(
-                  "px-3 py-1 rounded border",
-                  currentPage === i + 1 
-                    ? "bg-[#0056B3] text-white border-[#0056B3]" 
-                    : "border-gray-200 hover:bg-gray-50 text-gray-600"
-                )}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              下一页
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Form Modal */}
-      {showFormModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center shrink-0">
-              <h3 className="text-lg font-bold text-gray-900">
-                {formMode === 'add' ? '信息录入' :
-                 formMode === 'edit' ? (currentOutfall.auditStatus === 'approved' ? '修改申请' : '编辑排口') :
-                 formMode === 'review' ? '信息审核' : '排口详情'}
-              </h3>
-              <button onClick={() => setShowFormModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="flex border-b border-gray-100 shrink-0 px-6 pt-2 overflow-x-auto">
-              <button onClick={() => setActiveTab('basic')} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === 'basic' ? "border-[#0056B3] text-[#0056B3]" : "border-transparent text-gray-500 hover:text-gray-700")}>基础属性</button>
-              <button onClick={() => setActiveTab('location')} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === 'location' ? "border-[#0056B3] text-[#0056B3]" : "border-transparent text-gray-500 hover:text-gray-700")}>位置信息</button>
-              <button onClick={() => setActiveTab('responsibility')} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === 'responsibility' ? "border-[#0056B3] text-[#0056B3]" : "border-transparent text-gray-500 hover:text-gray-700")}>责任信息</button>
-              <button onClick={() => setActiveTab('attachments')} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === 'attachments' ? "border-[#0056B3] text-[#0056B3]" : "border-transparent text-gray-500 hover:text-gray-700")}>附件信息</button>
-              {(formMode === 'review' || currentOutfall?.auditStatus === 'rejected') && (
-                <button onClick={() => setActiveTab('review')} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === 'review' ? "border-red-500 text-red-600" : "border-transparent text-red-400 hover:text-red-600")}>审核信息</button>
-              )}
-              {formMode === 'view' && (
-                <>
-                  <button onClick={() => setActiveTab('inspections')} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === 'inspections' ? "border-[#0056B3] text-[#0056B3]" : "border-transparent text-gray-500 hover:text-gray-700")}>排查记录</button>
-                  <button onClick={() => setActiveTab('traceability')} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === 'traceability' ? "border-[#0056B3] text-[#0056B3]" : "border-transparent text-gray-500 hover:text-gray-700")}>溯源信息</button>
-                  <button onClick={() => setActiveTab('remediation')} className={cn("px-4 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap", activeTab === 'remediation' ? "border-[#0056B3] text-[#0056B3]" : "border-transparent text-gray-500 hover:text-gray-700")}>整治方案</button>
-                </>
-              )}
-            </div>
-
-            <div className="p-6 overflow-y-auto flex-1">
-              {formMode === 'edit' && currentOutfall?.auditStatus === 'approved' && (
-                <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <label className="block text-sm font-medium text-yellow-800 mb-1">修改原因说明 <span className="text-red-500">*</span></label>
-                  <textarea rows={2} className="w-full px-3 py-2 border border-yellow-300 rounded-md shadow-sm focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm bg-white" placeholder="请输入修改原因，提交后需管理员审核方可生效..."></textarea>
-                </div>
-              )}
-              {renderFormTab()}
-            </div>
-
-            <div className="p-6 border-t border-gray-100 flex justify-end gap-3 shrink-0 bg-gray-50 rounded-b-xl">
-              <button onClick={() => setShowFormModal(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg border border-gray-200 bg-white">
-                {formMode === 'view' ? '关闭' : '取消'}
-              </button>
-              {formMode !== 'view' && (
-                <button onClick={() => setShowFormModal(false)} className="px-4 py-2 text-sm font-medium text-white bg-[#0056B3] hover:bg-[#004494] rounded-lg">
-                  {formMode === 'review' ? '提交审核结果' : '提交'}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* QR Code Modal */}
-      {showQRModal && qrOutfall && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl p-8 w-full max-w-sm flex flex-col items-center relative">
-            <button onClick={() => setShowQRModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-              <X className="w-5 h-5" />
-            </button>
-            <h3 className="text-xl font-bold text-gray-900 mb-2 text-center">{qrOutfall.name}</h3>
-            <p className="text-sm text-gray-500 mb-6 font-mono">{qrOutfall.id}</p>
-            
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
-              <QRCodeSVG 
-                value={`https://example.com/outfall/${qrOutfall.id}`} 
-                size={200}
-                level="H"
-                includeMargin={true}
-              />
-            </div>
-            
-            <p className="text-xs text-gray-400 text-center mb-6">
-              移动端扫码即可查看排口基础信息、监测数据、整治进度、溯源信息
-            </p>
-
-            <div className="flex w-full gap-3">
-              <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                <Download className="w-4 h-4" /> 导出
-              </button>
-              <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#0056B3] hover:bg-[#004494] rounded-lg transition-colors">
-                <Printer className="w-4 h-4" /> 打印
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Simple Action Modal */}
-      {showActionModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900">系统提示</h3>
-              <button onClick={() => setShowActionModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <p className="text-gray-600 mb-6">确认要执行以下操作吗？<br/><span className="font-medium text-gray-900 mt-2 block">{actionContent}</span></p>
-            {actionContent.includes("注销") && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">注销原因 <span className="text-red-500">*</span></label>
-                <textarea rows={2} className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-[#0056B3] focus:border-[#0056B3] sm:text-sm" placeholder="请输入注销原因（如：已封堵/取缔）..."></textarea>
-                <p className="text-xs text-orange-500 mt-1">注销后排口状态标记为“已注销”，历史数据保留不可删除，台账中单独归档。</p>
-              </div>
-            )}
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setShowActionModal(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg border border-gray-200">
-                取消
-              </button>
-              <button onClick={() => setShowActionModal(false)} className={cn("px-4 py-2 text-sm font-medium text-white rounded-lg", actionContent.includes("注销") ? "bg-red-600 hover:bg-red-700" : "bg-[#0056B3] hover:bg-[#004494]")}>
-                确认
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 z-50 animate-in slide-in-from-bottom-5">
+      <span>{message}</span>
+      <button onClick={onClose} className="text-gray-400 hover:text-white"><X className="w-4 h-4" /></button>
     </div>
   );
 }
 
-// --- Inspections ---
-function Inspections() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [regionFilter, setRegionFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const filtered = useMemo(() => {
-    return mockInspections.filter((item) => {
-      const matchesSearch = item.outfallName.includes(searchTerm) || item.outfallId.includes(searchTerm);
-      const matchesStatus = statusFilter ? item.status === statusFilter : true;
-      const matchesRegion = regionFilter ? item.region === regionFilter : true;
-      return matchesSearch && matchesStatus && matchesRegion;
-    });
-  }, [searchTerm, statusFilter, regionFilter]);
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
-  const currentData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+function Modal({ title, children, onClose, onConfirm, confirmText = "确定", showFooter = true, size = "md" }: any) {
   return (
-    <div className="h-full flex flex-col gap-4">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="搜索排口名称/编码..." 
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] w-64"
-            />
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className={cn("bg-white rounded-xl shadow-xl flex flex-col max-h-full", 
+        size === "sm" ? "w-full max-w-md" : 
+        size === "lg" ? "w-full max-w-4xl" : 
+        size === "xl" ? "w-full max-w-6xl" :
+        "w-full max-w-2xl"
+      )}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900">{title}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+          {children}
+        </div>
+        {showFooter && (
+          <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-xl shrink-0">
+            <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+              取消
+            </button>
+            <button onClick={onConfirm} className="px-4 py-2 text-sm font-medium text-white bg-[#0056B3] rounded-lg hover:bg-[#004494]">
+              {confirmText}
+            </button>
           </div>
-          <select 
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
-          >
-            <option value="">排查结果</option>
-            <option value="正常">正常</option>
-            <option value="异常">异常</option>
-          </select>
-          <select 
-            value={regionFilter}
-            onChange={(e) => { setRegionFilter(e.target.value); setCurrentPage(1); }}
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
-          >
-            <option value="">所属区域</option>
-            <option value="铜山区">铜山区</option>
-            <option value="泉山区">泉山区</option>
-          </select>
-          <button 
-            onClick={() => { setSearchTerm(""); setStatusFilter(""); setRegionFilter(""); setCurrentPage(1); }}
-            className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition-colors"
-            title="重置过滤"
-          >
-            <Filter className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
-            <Download className="w-4 h-4" />
-            导出Excel
-          </button>
-          <button className="flex items-center gap-2 bg-[#0056B3] hover:bg-[#004494] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
-            <Plus className="w-4 h-4" />
-            录入排查记录
-          </button>
-        </div>
+        )}
       </div>
+    </div>
+  );
+}
 
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-0">
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
+function OutfallLedgerDetail({ outfall, onOpenModal }: { outfall: any, onOpenModal: (type: string, data?: any) => void }) {
+  return (
+    <div className="space-y-8">
+      {/* 全景图片 */}
+      <section>
+        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="w-1 h-4 bg-[#0056B3] rounded-full" /> 全景图片
+        </h3>
+        <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 relative group">
+          <img 
+            src={`https://picsum.photos/seed/${outfall.id}/800/400`} 
+            alt="排污口全景" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-between p-4">
+            <span className="text-white font-medium flex items-center gap-2">
+              <MapPin className="w-4 h-4" /> {outfall.name} - 现场实景
+            </span>
+            <button 
+              onClick={() => onOpenModal("viewPanorama", outfall)}
+              className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-3 py-1.5 rounded text-sm transition-colors"
+            >
+              <Eye className="w-4 h-4 inline-block mr-1" /> 查看大图
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 基础属性 */}
+      <section>
+        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="w-1 h-4 bg-[#0056B3] rounded-full" /> 基础属性
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8 text-sm">
+          <div><span className="text-gray-500 block mb-1">排口名称</span><span className="font-medium text-gray-900">{outfall.name}</span></div>
+          <div><span className="text-gray-500 block mb-1">唯一编码</span><span className="font-mono text-gray-900">{outfall.id}</span></div>
+          <div><span className="text-gray-500 block mb-1">排口类型</span><span className="text-gray-900">{outfall.type}</span></div>
+          <div><span className="text-gray-500 block mb-1">流域名称</span><span className="text-gray-900">{outfall.basin || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">入河类型</span><span className="text-gray-900">{outfall.entryType || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">入流方式</span><span className="text-gray-900">{outfall.flowType || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">口门类型</span><span className="text-gray-900">{outfall.gateType || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">受纳水体</span><span className="text-gray-900">{outfall.receivingWater || outfall.river || '-'}</span></div>
+          <div className="col-span-2 lg:col-span-3"><span className="text-gray-500 block mb-1">排水特征</span><span className="text-gray-900">{outfall.drainageChar || '-'}</span></div>
+        </div>
+      </section>
+
+      {/* 位置信息 */}
+      <section>
+        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="w-1 h-4 bg-[#0056B3] rounded-full" /> 位置信息
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8 text-sm">
+          <div><span className="text-gray-500 block mb-1">所属区域</span><span className="text-gray-900">{outfall.region || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">所属网格</span><span className="text-gray-900">{outfall.grid || '-'}</span></div>
+          <div className="col-span-2 lg:col-span-3"><span className="text-gray-500 block mb-1">详细地址</span><span className="text-gray-900">{outfall.address || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">经度</span><span className="font-mono text-gray-900">{outfall.lng || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">纬度</span><span className="font-mono text-gray-900">{outfall.lat || '-'}</span></div>
+        </div>
+      </section>
+
+      {/* 责任信息 */}
+      <section>
+        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="w-1 h-4 bg-[#0056B3] rounded-full" /> 责任信息
+        </h3>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-4 gap-x-8 text-sm">
+          <div className="col-span-2 lg:col-span-3"><span className="text-gray-500 block mb-1">责任主体</span><span className="text-gray-900">{outfall.responsibleEntity || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">行业主管部门</span><span className="text-gray-900">{outfall.industryDept || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">责任人</span><span className="text-gray-900">{outfall.manager || '-'}</span></div>
+          <div><span className="text-gray-500 block mb-1">联系方式</span><span className="text-gray-900">{outfall.phone || '-'}</span></div>
+        </div>
+      </section>
+
+      {/* 附件信息 */}
+      <section>
+        <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <div className="w-1 h-4 bg-[#0056B3] rounded-full" /> 附件信息
+        </h3>
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          {outfall.attachments?.length > 0 ? (
+            <ul className="space-y-2">
+              <li className="flex items-center justify-between text-sm bg-white p-3 rounded border border-gray-100 shadow-sm">
+                <span 
+                  className="text-[#0056B3] hover:underline cursor-pointer flex items-center gap-2"
+                  onClick={() => onOpenModal("previewAttachment", { name: "现场照片.jpg" })}
+                >
+                  <FileText className="w-4 h-4" /> 现场照片.jpg
+                </span>
+                <button 
+                  className="text-gray-400 hover:text-[#0056B3]"
+                  onClick={() => onOpenModal("downloadAttachment", { name: "现场照片.jpg" })}
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+              </li>
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-500 text-center py-4">暂无附件</p>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function InspectionsList({ outfallId, onOpenModal }: { outfallId: string, onOpenModal: (type: string, data?: any) => void }) {
+  const data = mockInspections.filter(i => i.outfallId === outfallId);
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-bold text-gray-900">排查记录 ({data.length})</h3>
+        <button 
+          onClick={() => onOpenModal("addInspection", { outfallId })}
+          className="flex items-center gap-1 bg-[#0056B3] hover:bg-[#004494] text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+        >
+          <Plus className="w-4 h-4" /> 录入记录
+        </button>
+      </div>
+      {data.length > 0 ? (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
+              <tr>
                 <th className="py-3 px-4 font-medium">排查时间</th>
-                <th className="py-3 px-4 font-medium">排口名称</th>
                 <th className="py-3 px-4 font-medium">排查方式</th>
                 <th className="py-3 px-4 font-medium">排查人员</th>
                 <th className="py-3 px-4 font-medium">污水排放</th>
@@ -660,11 +176,10 @@ function Inspections() {
                 <th className="py-3 px-4 font-medium text-right">操作</th>
               </tr>
             </thead>
-            <tbody className="text-sm divide-y divide-gray-100">
-              {currentData.length > 0 ? currentData.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+            <tbody className="divide-y divide-gray-100">
+              {data.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50">
                   <td className="py-3 px-4 text-gray-600">{item.time}</td>
-                  <td className="py-3 px-4 font-medium text-gray-900">{item.outfallName}</td>
                   <td className="py-3 px-4 text-gray-600">{item.method}</td>
                   <td className="py-3 px-4 text-gray-600">{item.inspector}</td>
                   <td className="py-3 px-4">
@@ -678,116 +193,38 @@ function Inspections() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="查看详情">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="补充记录">
-                        <Plus className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <button onClick={() => onOpenModal("viewInspection", item)} className="p-1 text-gray-400 hover:text-[#0056B3]" title="查看详情"><Eye className="w-4 h-4" /></button>
                   </td>
                 </tr>
-              )) : (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-500">暂无数据</td>
-                </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-          <div>共 {filtered.length} 条记录</div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              上一页
-            </button>
-            <span className="px-3 py-1">
-              {currentPage} / {totalPages}
-            </span>
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              下一页
-            </button>
-          </div>
-        </div>
-      </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-lg bg-gray-50">暂无排查记录</div>
+      )}
     </div>
   );
 }
 
-// --- Traceability ---
-function Traceability() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [auditFilter, setAuditFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const filtered = useMemo(() => {
-    return mockTraceability.filter((item) => {
-      const matchesSearch = item.outfallName.includes(searchTerm) || item.polluter.includes(searchTerm);
-      const matchesAudit = auditFilter ? item.auditStatus === auditFilter : true;
-      return matchesSearch && matchesAudit;
-    });
-  }, [searchTerm, auditFilter]);
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
-  const currentData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+function TraceabilityList({ outfallId, onOpenModal }: { outfallId: string, onOpenModal: (type: string, data?: any) => void }) {
+  const data = mockTraceability.filter(i => i.outfallId === outfallId);
   return (
-    <div className="h-full flex flex-col gap-4">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="搜索排口名称/责任主体..." 
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] w-64"
-            />
-          </div>
-          <select 
-            value={auditFilter}
-            onChange={(e) => { setAuditFilter(e.target.value); setCurrentPage(1); }}
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
-          >
-            <option value="">审核状态</option>
-            <option value="approved">已审核</option>
-            <option value="pending">待审核</option>
-          </select>
-          <button 
-            onClick={() => { setSearchTerm(""); setAuditFilter(""); setCurrentPage(1); }}
-            className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition-colors"
-            title="重置过滤"
-          >
-            <Filter className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 bg-[#0056B3] hover:bg-[#004494] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
-            <Plus className="w-4 h-4" />
-            录入溯源信息
-          </button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-bold text-gray-900">溯源信息 ({data.length})</h3>
+        <button 
+          onClick={() => onOpenModal("addTraceability", { outfallId })}
+          className="flex items-center gap-1 bg-[#0056B3] hover:bg-[#004494] text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+        >
+          <Plus className="w-4 h-4" /> 录入溯源
+        </button>
       </div>
-
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-0">
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
-                <th className="py-3 px-4 font-medium">排口名称</th>
+      {data.length > 0 ? (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
+              <tr>
                 <th className="py-3 px-4 font-medium">污染责任主体</th>
                 <th className="py-3 px-4 font-medium">排污通道类型</th>
                 <th className="py-3 px-4 font-medium">污染物种类</th>
@@ -796,10 +233,9 @@ function Traceability() {
                 <th className="py-3 px-4 font-medium text-right">操作</th>
               </tr>
             </thead>
-            <tbody className="text-sm divide-y divide-gray-100">
-              {currentData.length > 0 ? currentData.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-3 px-4 font-medium text-gray-900">{item.outfallName}</td>
+            <tbody className="divide-y divide-gray-100">
+              {data.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50">
                   <td className="py-3 px-4 text-gray-600">{item.polluter}</td>
                   <td className="py-3 px-4 text-gray-600">{item.channelType}</td>
                   <td className="py-3 px-4 text-gray-600">{item.pollutants}</td>
@@ -810,123 +246,38 @@ function Traceability() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="查看详情">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="预览报告">
-                        <FileText className="w-4 h-4" />
-                      </button>
-                      {item.auditStatus === 'pending' && (
-                        <button className="p-1.5 text-blue-500 hover:text-blue-700 transition-colors" title="审核">
-                          <CheckCircle className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
+                    <button onClick={() => onOpenModal("viewTraceability", item)} className="p-1 text-gray-400 hover:text-[#0056B3]" title="查看详情"><Eye className="w-4 h-4" /></button>
                   </td>
                 </tr>
-              )) : (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-500">暂无数据</td>
-                </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-          <div>共 {filtered.length} 条记录</div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              上一页
-            </button>
-            <span className="px-3 py-1">
-              {currentPage} / {totalPages}
-            </span>
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              下一页
-            </button>
-          </div>
-        </div>
-      </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-lg bg-gray-50">暂无溯源信息</div>
+      )}
     </div>
   );
 }
 
-// --- Remediations ---
-function Remediations() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [progressFilter, setProgressFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const filtered = useMemo(() => {
-    return mockRemediations.filter((item) => {
-      const matchesSearch = item.outfallName.includes(searchTerm) || item.entity.includes(searchTerm);
-      const matchesProgress = progressFilter ? item.progressStatus === progressFilter : true;
-      return matchesSearch && matchesProgress;
-    });
-  }, [searchTerm, progressFilter]);
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
-  const currentData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
+function RemediationsList({ outfallId, onOpenModal }: { outfallId: string, onOpenModal: (type: string, data?: any) => void }) {
+  const data = mockRemediations.filter(i => i.outfallId === outfallId);
   return (
-    <div className="h-full flex flex-col gap-4">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="搜索排口名称/责任单位..." 
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] w-64"
-            />
-          </div>
-          <select 
-            value={progressFilter}
-            onChange={(e) => { setProgressFilter(e.target.value); setCurrentPage(1); }}
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
-          >
-            <option value="">整治进度</option>
-            <option value="未整治">未整治</option>
-            <option value="整治中">整治中</option>
-            <option value="已完成">已完成</option>
-            <option value="已销号">已销号</option>
-          </select>
-          <button 
-            onClick={() => { setSearchTerm(""); setProgressFilter(""); setCurrentPage(1); }}
-            className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition-colors"
-            title="重置过滤"
-          >
-            <Filter className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 bg-[#0056B3] hover:bg-[#004494] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
-            <Plus className="w-4 h-4" />
-            制定整治方案
-          </button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-bold text-gray-900">整治管理 ({data.length})</h3>
+        <button 
+          onClick={() => onOpenModal("addRemediation", { outfallId })}
+          className="flex items-center gap-1 bg-[#0056B3] hover:bg-[#004494] text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+        >
+          <Plus className="w-4 h-4" /> 制定方案
+        </button>
       </div>
-
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-0">
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
-                <th className="py-3 px-4 font-medium">排口名称</th>
+      {data.length > 0 ? (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
+              <tr>
                 <th className="py-3 px-4 font-medium">整治目标</th>
                 <th className="py-3 px-4 font-medium">责任单位</th>
                 <th className="py-3 px-4 font-medium">责任人</th>
@@ -935,10 +286,9 @@ function Remediations() {
                 <th className="py-3 px-4 font-medium text-right">操作</th>
               </tr>
             </thead>
-            <tbody className="text-sm divide-y divide-gray-100">
-              {currentData.length > 0 ? currentData.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="py-3 px-4 font-medium text-gray-900">{item.outfallName}</td>
+            <tbody className="divide-y divide-gray-100">
+              {data.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50">
                   <td className="py-3 px-4 text-gray-600">{item.goal}</td>
                   <td className="py-3 px-4 text-gray-600">{item.entity}</td>
                   <td className="py-3 px-4 text-gray-600">{item.person}</td>
@@ -955,150 +305,45 @@ function Remediations() {
                   </td>
                   <td className="py-3 px-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="查看详情">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="更新进度">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-orange-500 transition-colors" title="添加督办备注">
-                        <MessageSquare className="w-4 h-4" />
-                      </button>
+                      <button onClick={() => onOpenModal("viewRemediation", item)} className="p-1 text-gray-400 hover:text-[#0056B3]" title="查看详情"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => onOpenModal("updateRemediation", item)} className="p-1 text-gray-400 hover:text-[#0056B3]" title="更新进度"><Edit className="w-4 h-4" /></button>
+                      <button onClick={() => onOpenModal("addSupervision", item)} className="p-1 text-gray-400 hover:text-orange-500" title="添加督办备注"><MessageSquare className="w-4 h-4" /></button>
                       {item.progressStatus === '已完成' && (
-                        <button className="p-1.5 text-green-500 hover:text-green-700 transition-colors" title="验收申请">
-                          <CheckSquare className="w-4 h-4" />
-                        </button>
+                        <button onClick={() => onOpenModal("applyAcceptance", item)} className="p-1 text-green-500 hover:text-green-700" title="验收申请"><CheckSquare className="w-4 h-4" /></button>
                       )}
                     </div>
                   </td>
                 </tr>
-              )) : (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-500">暂无数据</td>
-                </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-          <div>共 {filtered.length} 条记录</div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              上一页
-            </button>
-            <span className="px-3 py-1">
-              {currentPage} / {totalPages}
-            </span>
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              下一页
-            </button>
-          </div>
-        </div>
-      </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-lg bg-gray-50">暂无整治方案</div>
+      )}
     </div>
   );
 }
 
-// --- Signboards ---
-function Signboards() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  const filtered = useMemo(() => {
-    return mockSignboards.filter((item) => {
-      const matchesSearch = item.outfallName.includes(searchTerm) || item.id.includes(searchTerm);
-      const matchesType = typeFilter ? item.type === typeFilter : true;
-      const matchesStatus = statusFilter ? item.installStatus === statusFilter : true;
-      return matchesSearch && matchesType && matchesStatus;
-    });
-  }, [searchTerm, typeFilter, statusFilter]);
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
-  const currentData = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  const getBadgeColor = (type: string) => {
-    switch(type) {
-      case '工业排污口': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case '城镇污水处理厂排污口': return 'bg-red-100 text-red-800 border-red-200';
-      case '农业排口': return 'bg-green-100 text-green-800 border-green-200';
-      default: return 'bg-blue-100 text-blue-800 border-blue-200';
-    }
-  };
-
+function SignboardsList({ outfallId, onOpenModal }: { outfallId: string, onOpenModal: (type: string, data?: any) => void }) {
+  const data = mockSignboards.filter(i => i.outfallId === outfallId);
   return (
-    <div className="h-full flex flex-col gap-4">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="搜索标识牌编号/排口名称..." 
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] w-64"
-            />
-          </div>
-          <select 
-            value={typeFilter}
-            onChange={(e) => { setTypeFilter(e.target.value); setCurrentPage(1); }}
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
-          >
-            <option value="">标识牌类型</option>
-            <option value="工业排污口">工业排污口</option>
-            <option value="城镇污水处理厂排污口">城镇污水处理厂排污口</option>
-            <option value="农业排口">农业排口</option>
-            <option value="其他排口">其他排口</option>
-          </select>
-          <select 
-            value={statusFilter}
-            onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
-            className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
-          >
-            <option value="">安装状态</option>
-            <option value="已安装">已安装</option>
-            <option value="待安装">待安装</option>
-          </select>
-          <button 
-            onClick={() => { setSearchTerm(""); setTypeFilter(""); setStatusFilter(""); setCurrentPage(1); }}
-            className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition-colors"
-            title="重置过滤"
-          >
-            <Filter className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="flex gap-2">
-          <button className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
-            <Download className="w-4 h-4" />
-            导出台账
-          </button>
-          <button className="flex items-center gap-2 bg-[#0056B3] hover:bg-[#004494] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
-            <Plus className="w-4 h-4" />
-            录入标识牌
-          </button>
-        </div>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-bold text-gray-900">标识牌管理 ({data.length})</h3>
+        <button 
+          onClick={() => onOpenModal("addSignboard", { outfallId })}
+          className="flex items-center gap-1 bg-[#0056B3] hover:bg-[#004494] text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+        >
+          <Plus className="w-4 h-4" /> 录入标识牌
+        </button>
       </div>
-
-      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col min-h-0">
-        <div className="overflow-x-auto flex-1">
-          <table className="w-full text-left border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-100 text-sm text-gray-500">
+      {data.length > 0 ? (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
+              <tr>
                 <th className="py-3 px-4 font-medium">标识牌编号</th>
-                <th className="py-3 px-4 font-medium">排口名称</th>
                 <th className="py-3 px-4 font-medium">标识牌类型</th>
                 <th className="py-3 px-4 font-medium">规格型号</th>
                 <th className="py-3 px-4 font-medium">安装状态</th>
@@ -1106,16 +351,11 @@ function Signboards() {
                 <th className="py-3 px-4 font-medium text-right">操作</th>
               </tr>
             </thead>
-            <tbody className="text-sm divide-y divide-gray-100">
-              {currentData.length > 0 ? currentData.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+            <tbody className="divide-y divide-gray-100">
+              {data.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50">
                   <td className="py-3 px-4 font-mono text-gray-600">{item.id}</td>
-                  <td className="py-3 px-4 font-medium text-gray-900">{item.outfallName}</td>
-                  <td className="py-3 px-4">
-                    <span className={cn("px-2 py-1 rounded-md text-xs border", getBadgeColor(item.type))}>
-                      {item.type}
-                    </span>
-                  </td>
+                  <td className="py-3 px-4 text-gray-600">{item.type}</td>
                   <td className="py-3 px-4 text-gray-600">{item.spec}</td>
                   <td className="py-3 px-4">
                     <span className={cn("px-2 py-1 rounded-md text-xs", item.installStatus === '已安装' ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700")}>
@@ -1124,74 +364,372 @@ function Signboards() {
                   </td>
                   <td className="py-3 px-4 text-gray-600">{item.installTime}</td>
                   <td className="py-3 px-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="查看详情">
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button className="p-1.5 text-gray-400 hover:text-[#0056B3] transition-colors" title="维护记录">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <button onClick={() => onOpenModal("viewSignboard", item)} className="p-1 text-gray-400 hover:text-[#0056B3]" title="查看详情"><Eye className="w-4 h-4" /></button>
                   </td>
                 </tr>
-              )) : (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-500">暂无数据</td>
-                </tr>
-              )}
+              ))}
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination */}
-        <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-          <div>共 {filtered.length} 条记录</div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              上一页
-            </button>
-            <span className="px-3 py-1">
-              {currentPage} / {totalPages}
-            </span>
-            <button 
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              下一页
-            </button>
-          </div>
-        </div>
-      </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-lg bg-gray-50">暂无标识牌信息</div>
+      )}
     </div>
   );
 }
+
+type ModalType = 'addOutfall' | 'editOutfall' | 'viewPanorama' | 'previewAttachment' | 'addInspection' | 'viewInspection' | 'addTraceability' | 'viewTraceability' | 'addRemediation' | 'viewRemediation' | 'updateRemediation' | 'addSupervision' | 'applyAcceptance' | 'addSignboard' | 'viewSignboard' | 'viewQRCode' | 'downloadAttachment' | null;
 
 export default function Outfalls() {
-  const [activeMainTab, setActiveMainTab] = useState('ledger');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOutfallId, setSelectedOutfallId] = useState<string | null>(mockOutfalls[0]?.id || null);
+  const [activeTab, setActiveTab] = useState('ledger');
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [modalData, setModalData] = useState<any>(null);
+
+  const handleAction = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleOpenModal = (type: ModalType, data?: any) => {
+    setActiveModal(type);
+    setModalData(data || null);
+  };
+
+  const handleCloseModal = () => {
+    setActiveModal(null);
+    setModalData(null);
+  };
+
+  const handleConfirmModal = () => {
+    handleAction("操作成功");
+    handleCloseModal();
+  };
+
+  const filteredOutfalls = useMemo(() => {
+    return mockOutfalls.filter(o => o.name.includes(searchTerm) || o.id.includes(searchTerm));
+  }, [searchTerm]);
+
+  const selectedOutfall = useMemo(() => {
+    return mockOutfalls.find(o => o.id === selectedOutfallId) || null;
+  }, [selectedOutfallId]);
+
+  const renderModal = () => {
+    if (!activeModal) return null;
+
+    switch (activeModal) {
+      case 'addOutfall':
+      case 'editOutfall':
+        return (
+          <Modal title={activeModal === 'addOutfall' ? "新增排污口" : "编辑排污口信息"} onClose={handleCloseModal} onConfirm={handleConfirmModal} size="lg">
+            <div className="grid grid-cols-2 gap-4">
+              <div><label className="block text-sm text-gray-700 mb-1">排口名称</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.name} /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">唯一编码</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.id} /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">排口类型</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.type} /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">经度</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.lng} /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">纬度</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.lat} /></div>
+              <div className="col-span-2"><label className="block text-sm text-gray-700 mb-1">详细地址</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.address} /></div>
+            </div>
+          </Modal>
+        );
+      case 'viewPanorama':
+        return (
+          <Modal title="全景大图" onClose={handleCloseModal} showFooter={false} size="xl">
+            <img src={`https://picsum.photos/seed/${modalData?.id}/1200/600`} alt="全景" className="w-full h-auto rounded" />
+          </Modal>
+        );
+      case 'previewAttachment':
+        return (
+          <Modal title={`预览附件: ${modalData?.name}`} onClose={handleCloseModal} showFooter={false} size="lg">
+             <div className="flex items-center justify-center h-96 bg-gray-100 rounded border border-gray-200">
+               <FileText className="w-16 h-16 text-gray-400 mb-4" />
+               <p className="text-gray-500">附件预览区域</p>
+             </div>
+          </Modal>
+        );
+      case 'downloadAttachment':
+        return (
+          <Modal title="下载附件" onClose={handleCloseModal} onConfirm={handleConfirmModal} confirmText="确认下载">
+            <p>确定要下载附件 {modalData?.name} 吗？</p>
+          </Modal>
+        );
+      case 'addInspection':
+        return (
+          <Modal title="录入排查记录" onClose={handleCloseModal} onConfirm={handleConfirmModal}>
+            <div className="space-y-4">
+              <div><label className="block text-sm text-gray-700 mb-1">排查时间</label><input type="date" className="w-full border rounded p-2 text-sm" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">排查方式</label><select className="w-full border rounded p-2 text-sm"><option>人工排查</option><option>无人机排查</option></select></div>
+              <div><label className="block text-sm text-gray-700 mb-1">排查人员</label><input type="text" className="w-full border rounded p-2 text-sm" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">排口状态</label><select className="w-full border rounded p-2 text-sm"><option>正常</option><option>异常</option></select></div>
+            </div>
+          </Modal>
+        );
+      case 'viewInspection':
+        return (
+          <Modal title="排查记录详情" onClose={handleCloseModal} showFooter={false}>
+            <div className="space-y-3 text-sm">
+              <p><span className="text-gray-500 w-24 inline-block">排查时间:</span> {modalData?.time}</p>
+              <p><span className="text-gray-500 w-24 inline-block">排查方式:</span> {modalData?.method}</p>
+              <p><span className="text-gray-500 w-24 inline-block">排查人员:</span> {modalData?.inspector}</p>
+              <p><span className="text-gray-500 w-24 inline-block">污水排放:</span> {modalData?.hasSewage}</p>
+              <p><span className="text-gray-500 w-24 inline-block">排口状态:</span> {modalData?.status}</p>
+            </div>
+          </Modal>
+        );
+      case 'addTraceability':
+        return (
+          <Modal title="录入溯源信息" onClose={handleCloseModal} onConfirm={handleConfirmModal}>
+            <div className="space-y-4">
+              <div><label className="block text-sm text-gray-700 mb-1">污染责任主体</label><input type="text" className="w-full border rounded p-2 text-sm" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">排污通道类型</label><input type="text" className="w-full border rounded p-2 text-sm" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">污染物种类</label><input type="text" className="w-full border rounded p-2 text-sm" /></div>
+            </div>
+          </Modal>
+        );
+      case 'viewTraceability':
+        return (
+          <Modal title="溯源信息详情" onClose={handleCloseModal} showFooter={false}>
+            <div className="space-y-3 text-sm">
+              <p><span className="text-gray-500 w-24 inline-block">责任主体:</span> {modalData?.polluter}</p>
+              <p><span className="text-gray-500 w-24 inline-block">通道类型:</span> {modalData?.channelType}</p>
+              <p><span className="text-gray-500 w-24 inline-block">污染物:</span> {modalData?.pollutants}</p>
+              <p><span className="text-gray-500 w-24 inline-block">溯源时间:</span> {modalData?.time}</p>
+              <p><span className="text-gray-500 w-24 inline-block">审核状态:</span> {modalData?.auditStatus === 'approved' ? '已审核' : '待审核'}</p>
+            </div>
+          </Modal>
+        );
+      case 'addRemediation':
+        return (
+          <Modal title="制定整治方案" onClose={handleCloseModal} onConfirm={handleConfirmModal}>
+            <div className="space-y-4">
+              <div><label className="block text-sm text-gray-700 mb-1">整治目标</label><input type="text" className="w-full border rounded p-2 text-sm" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">责任单位</label><input type="text" className="w-full border rounded p-2 text-sm" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">完成时限</label><input type="date" className="w-full border rounded p-2 text-sm" /></div>
+            </div>
+          </Modal>
+        );
+      case 'viewRemediation':
+        return (
+          <Modal title="整治方案详情" onClose={handleCloseModal} showFooter={false}>
+            <div className="space-y-3 text-sm">
+              <p><span className="text-gray-500 w-24 inline-block">整治目标:</span> {modalData?.goal}</p>
+              <p><span className="text-gray-500 w-24 inline-block">责任单位:</span> {modalData?.entity}</p>
+              <p><span className="text-gray-500 w-24 inline-block">责任人:</span> {modalData?.person}</p>
+              <p><span className="text-gray-500 w-24 inline-block">完成时限:</span> {modalData?.deadline}</p>
+              <p><span className="text-gray-500 w-24 inline-block">整治进度:</span> {modalData?.progressStatus}</p>
+            </div>
+          </Modal>
+        );
+      case 'updateRemediation':
+        return (
+          <Modal title="更新整治进度" onClose={handleCloseModal} onConfirm={handleConfirmModal}>
+            <div className="space-y-4">
+              <div><label className="block text-sm text-gray-700 mb-1">当前进度</label><select className="w-full border rounded p-2 text-sm"><option>整治中</option><option>已完成</option></select></div>
+              <div><label className="block text-sm text-gray-700 mb-1">进度说明</label><textarea className="w-full border rounded p-2 text-sm" rows={3}></textarea></div>
+            </div>
+          </Modal>
+        );
+      case 'addSupervision':
+        return (
+          <Modal title="添加督办备注" onClose={handleCloseModal} onConfirm={handleConfirmModal}>
+            <div className="space-y-4">
+              <div><label className="block text-sm text-gray-700 mb-1">督办内容</label><textarea className="w-full border rounded p-2 text-sm" rows={4} placeholder="请输入督办意见..."></textarea></div>
+            </div>
+          </Modal>
+        );
+      case 'applyAcceptance':
+        return (
+          <Modal title="申请验收" onClose={handleCloseModal} onConfirm={handleConfirmModal} confirmText="提交申请">
+            <p className="mb-4">确认对该整治项目发起验收申请？</p>
+            <div><label className="block text-sm text-gray-700 mb-1">验收说明</label><textarea className="w-full border rounded p-2 text-sm" rows={3}></textarea></div>
+          </Modal>
+        );
+      case 'addSignboard':
+        return (
+          <Modal title="录入标识牌" onClose={handleCloseModal} onConfirm={handleConfirmModal}>
+            <div className="space-y-4">
+              <div><label className="block text-sm text-gray-700 mb-1">标识牌类型</label><input type="text" className="w-full border rounded p-2 text-sm" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">规格型号</label><input type="text" className="w-full border rounded p-2 text-sm" /></div>
+              <div><label className="block text-sm text-gray-700 mb-1">安装状态</label><select className="w-full border rounded p-2 text-sm"><option>已安装</option><option>未安装</option></select></div>
+            </div>
+          </Modal>
+        );
+      case 'viewSignboard':
+        return (
+          <Modal title="标识牌详情" onClose={handleCloseModal} showFooter={false}>
+            <div className="space-y-3 text-sm">
+              <p><span className="text-gray-500 w-24 inline-block">标识牌编号:</span> {modalData?.id}</p>
+              <p><span className="text-gray-500 w-24 inline-block">标识牌类型:</span> {modalData?.type}</p>
+              <p><span className="text-gray-500 w-24 inline-block">规格型号:</span> {modalData?.spec}</p>
+              <p><span className="text-gray-500 w-24 inline-block">安装状态:</span> {modalData?.installStatus}</p>
+              <p><span className="text-gray-500 w-24 inline-block">安装时间:</span> {modalData?.installTime}</p>
+            </div>
+          </Modal>
+        );
+      case 'viewQRCode':
+        return (
+          <Modal title="排污口二维码" onClose={handleCloseModal} showFooter={false} size="sm">
+            <div className="flex flex-col items-center justify-center p-8">
+              <div className="w-48 h-48 bg-gray-100 border border-gray-200 rounded-lg flex items-center justify-center mb-4">
+                <QrCode className="w-32 h-32 text-gray-800" />
+              </div>
+              <p className="text-sm font-medium text-gray-900">{modalData?.name}</p>
+              <p className="text-xs text-gray-500 mt-1 font-mono">{modalData?.id}</p>
+            </div>
+          </Modal>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
-    <div className="h-full flex flex-col gap-4 relative">
-      <div className="flex gap-2 border-b border-gray-200 pb-2 overflow-x-auto shrink-0">
-        <button onClick={() => setActiveMainTab('ledger')} className={cn("px-4 py-2 rounded-t-lg font-medium whitespace-nowrap transition-colors", activeMainTab === 'ledger' ? "bg-[#0056B3] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>排口台账</button>
-        <button onClick={() => setActiveMainTab('inspections')} className={cn("px-4 py-2 rounded-t-lg font-medium whitespace-nowrap transition-colors", activeMainTab === 'inspections' ? "bg-[#0056B3] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>排查记录</button>
-        <button onClick={() => setActiveMainTab('traceability')} className={cn("px-4 py-2 rounded-t-lg font-medium whitespace-nowrap transition-colors", activeMainTab === 'traceability' ? "bg-[#0056B3] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>溯源信息</button>
-        <button onClick={() => setActiveMainTab('remediations')} className={cn("px-4 py-2 rounded-t-lg font-medium whitespace-nowrap transition-colors", activeMainTab === 'remediations' ? "bg-[#0056B3] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>整治管理</button>
-        <button onClick={() => setActiveMainTab('signboards')} className={cn("px-4 py-2 rounded-t-lg font-medium whitespace-nowrap transition-colors", activeMainTab === 'signboards' ? "bg-[#0056B3] text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200")}>标识牌管理</button>
+    <div className="h-full flex gap-4 relative">
+      {/* Left Panel: Outfall List */}
+      <div className="w-80 flex flex-col bg-white rounded-xl shadow-sm border border-gray-100 shrink-0">
+        <div className="p-4 border-b border-gray-100 flex flex-col gap-3">
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold text-gray-900">排污口列表</h3>
+            <button 
+              onClick={() => handleOpenModal("addOutfall")}
+              className="text-[#0056B3] hover:bg-blue-50 p-1.5 rounded-md transition-colors" 
+              title="新增排污口"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="搜索排口名称/编码..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3]"
+            />
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {filteredOutfalls.map(outfall => (
+            <button
+              key={outfall.id}
+              onClick={() => setSelectedOutfallId(outfall.id)}
+              className={cn(
+                "w-full text-left p-3 rounded-lg transition-colors border",
+                selectedOutfallId === outfall.id 
+                  ? "bg-blue-50 border-blue-200" 
+                  : "border-transparent hover:bg-gray-50"
+              )}
+            >
+              <div className="font-medium text-gray-900 truncate">{outfall.name}</div>
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-xs text-gray-500 font-mono">{outfall.id}</span>
+                <span className={cn("text-[10px] px-1.5 py-0.5 rounded border", 
+                  outfall.status === 'normal' ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
+                  outfall.status === 'warning' ? "bg-red-50 text-red-600 border-red-200" :
+                  outfall.status === 'offline' ? "bg-slate-50 text-slate-600 border-slate-200" :
+                  "bg-yellow-50 text-yellow-600 border-yellow-200"
+                )}>
+                  {outfall.status === 'normal' ? '正常' : outfall.status === 'warning' ? '异常' : outfall.status === 'offline' ? '离线' : '维护'}
+                </span>
+              </div>
+            </button>
+          ))}
+          {filteredOutfalls.length === 0 && (
+            <div className="text-center py-8 text-sm text-gray-500">没有找到相关排污口</div>
+          )}
+        </div>
       </div>
 
-      <div className="flex-1 min-h-0">
-        {activeMainTab === 'ledger' && <OutfallLedger />}
-        {activeMainTab === 'inspections' && <Inspections />}
-        {activeMainTab === 'traceability' && <Traceability />}
-        {activeMainTab === 'remediations' && <Remediations />}
-        {activeMainTab === 'signboards' && <Signboards />}
+      {/* Right Panel: One File Details */}
+      <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col min-w-0">
+        {selectedOutfall ? (
+          <>
+            <div className="p-6 border-b border-gray-100 shrink-0">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    {selectedOutfall.name}
+                    <span className={cn("text-xs px-2 py-0.5 rounded-full border font-normal", 
+                      selectedOutfall.auditStatus === 'approved' ? "bg-green-50 text-green-700 border-green-200" :
+                      selectedOutfall.auditStatus === 'pending' ? "bg-blue-50 text-blue-700 border-blue-200" :
+                      "bg-red-50 text-red-700 border-red-200"
+                    )}>
+                      {selectedOutfall.auditStatus === 'approved' ? '已建档' :
+                       selectedOutfall.auditStatus === 'pending' ? '待审核' : '已驳回'}
+                    </span>
+                  </h2>
+                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <span className="font-mono flex items-center gap-1"><QrCode className="w-3 h-3"/> {selectedOutfall.id}</span>
+                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3"/> {selectedOutfall.address}</span>
+                    <span className="flex items-center gap-1"><Activity className="w-3 h-3"/> {selectedOutfall.type}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    onClick={() => handleOpenModal("viewQRCode", selectedOutfall)}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-1"
+                  >
+                    <QrCode className="w-4 h-4" /> 二维码
+                  </button>
+                  <button 
+                    onClick={() => handleOpenModal("editOutfall", selectedOutfall)}
+                    className="px-3 py-1.5 text-sm font-medium text-white bg-[#0056B3] hover:bg-[#004494] rounded-lg flex items-center gap-1"
+                  >
+                    <Edit className="w-4 h-4" /> 编辑信息
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-6 mt-6 border-b border-gray-200">
+                {[
+                  { id: 'ledger', label: '排污台账' },
+                  { id: 'inspections', label: '排查记录' },
+                  { id: 'traceability', label: '溯源信息' },
+                  { id: 'remediations', label: '整治管理' },
+                  { id: 'signboards', label: '标识牌管理' },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "pb-3 text-sm font-medium transition-colors relative",
+                      activeTab === tab.id ? "text-[#0056B3]" : "text-gray-500 hover:text-gray-700"
+                    )}
+                  >
+                    {tab.label}
+                    {activeTab === tab.id && (
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#0056B3] rounded-t-full" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {activeTab === 'ledger' && <OutfallLedgerDetail outfall={selectedOutfall} onOpenModal={handleOpenModal} />}
+              {activeTab === 'inspections' && <InspectionsList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
+              {activeTab === 'traceability' && <TraceabilityList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
+              {activeTab === 'remediations' && <RemediationsList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
+              {activeTab === 'signboards' && <SignboardsList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
+            </div>
+          </>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-400 flex-col gap-2">
+            <Activity className="w-12 h-12 text-gray-200" />
+            <p>请在左侧选择一个排污口</p>
+          </div>
+        )}
       </div>
+
+      {renderModal()}
+
+      {toastMessage && (
+        <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+      )}
     </div>
   );
 }
-

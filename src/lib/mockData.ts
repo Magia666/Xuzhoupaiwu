@@ -1,58 +1,73 @@
 export const mockStats = {
-  totalOutfalls: 128,
-  onlineMonitoring: 115,
-  waterQualityCompliance: 94.2,
-  totalWarnings: 24,
-  unhandledWarnings: 5,
+  totalOutfalls: 1245,
+  completedRectification: 982,
+  onlineMonitoring: 1115,
+  waterQualityCompliance: 94.6,
+  licensedOutfalls: 856,
+  todayDischarge: 12.8, // 万m³
+  monthDischarge: 385,
+  dischargeChange: -2.4,
+  waterQualityPassRate: 98.2,
+  todayExceed: 0,
+  monthExceed: 2,
+  sectionPassRate: 95.8,
+  totalSections: 12,
+  excellentWaterRate: 83.3,
+  alarmResolutionRate: 86.7,
+  totalWarnings: 15,
+  unhandledWarnings: 3, // Aligning directly with the 3 pending ones in mockWarnings below
+  flowToday: 12450,
+  averageCOD: 15.2,
+  deviceOnlineRate: 98.5
 };
 
 export const mockOutfalls = [
   { 
-    id: "EB320312001", name: "奎河张庄排污口", type: "工业排污口", status: "normal", lat: 34.2, lng: 117.1, waterQuality: "II类", river: "奎河", manager: "张三", phone: "13800138000", updateTime: "2026-03-18 10:00",
+    id: "EB320312001", name: "奎河张庄排污口", type: "工业排污口", status: "normal", lat: 34.285, lng: 117.162, waterQuality: "II类", river: "奎河", manager: "张三", phone: "13800138000", updateTime: "2026-03-18 10:00",
     basin: "淮河流域", entryType: "明渠", flowType: "连续", gateType: "闸门", receivingWater: "奎河", drainageChar: "工业废水", region: "铜山区", address: "张庄村1号", grid: "网格A1", responsibleEntity: "某某化工厂", industryDept: "环保局", attachments: [], auditStatus: "approved", cancelStatus: "active", qrCode: "qr-001"
   },
   { 
-    id: "EB320312002", name: "房亭河大吴排污口", type: "城镇污水处理厂排污口", status: "warning", lat: 34.3, lng: 117.2, waterQuality: "IV类", river: "房亭河", manager: "李四", phone: "13900139000", updateTime: "2026-03-18 09:30",
+    id: "EB320312002", name: "房亭河大吴排污口", type: "城镇污水处理厂排污口", status: "warning", lat: 34.221, lng: 117.215, waterQuality: "IV类", river: "房亭河", manager: "李四", phone: "13900139000", updateTime: "2026-03-18 09:30",
     basin: "淮河流域", entryType: "暗管", flowType: "间歇", gateType: "无", receivingWater: "房亭河", drainageChar: "生活污水", region: "铜山区", address: "大吴镇2号", grid: "网格B2", responsibleEntity: "大吴污水处理厂", industryDept: "住建局", attachments: [], auditStatus: "approved", cancelStatus: "active", qrCode: "qr-002"
   },
   { 
-    id: "EB320312003", name: "故黄河汉王排污口", type: "农业排口", status: "offline", lat: 34.1, lng: 117.0, waterQuality: "III类", river: "故黄河", manager: "王五", phone: "13700137000", updateTime: "2026-03-17 15:00",
+    id: "EB320312003", name: "故黄河汉王排污口", type: "农业排口", status: "offline", lat: 34.298, lng: 117.105, waterQuality: "III类", river: "故黄河", manager: "王五", phone: "13700137000", updateTime: "2026-03-17 15:00",
     basin: "黄河流域", entryType: "明渠", flowType: "间歇", gateType: "泵站", receivingWater: "故黄河", drainageChar: "农田退水", region: "铜山区", address: "汉王镇3号", grid: "网格C3", responsibleEntity: "汉王镇政府", industryDept: "农业农村局", attachments: [], auditStatus: "approved", cancelStatus: "active", qrCode: "qr-003"
   },
   { 
-    id: "EB320312004", name: "微山湖沿岸排污口", type: "其他排口", status: "maintenance", lat: 34.4, lng: 117.3, waterQuality: "III类", river: "微山湖", manager: "赵六", phone: "13600136000", updateTime: "2026-03-16 11:20",
+    id: "EB320312004", name: "微山湖沿岸排污口", type: "其他排口", status: "maintenance", lat: 34.341, lng: 117.202, waterQuality: "III类", river: "微山湖", manager: "赵六", phone: "13600136000", updateTime: "2026-03-16 11:20",
     basin: "南四湖流域", entryType: "暗管", flowType: "连续", gateType: "无", receivingWater: "微山湖", drainageChar: "混合污水", region: "铜山区", address: "沿湖村4号", grid: "网格D4", responsibleEntity: "沿湖村委会", industryDept: "环保局", attachments: [], auditStatus: "pending", cancelStatus: "active", qrCode: ""
   },
   { 
-    id: "EB320312005", name: "不牢河排污口", type: "工业排污口", status: "normal", lat: 34.5, lng: 117.4, waterQuality: "II类", river: "不牢河", manager: "孙七", phone: "13500135000", updateTime: "2026-03-18 08:00",
+    id: "EB320312005", name: "不牢河排污口", type: "工业排污口", status: "normal", lat: 34.254, lng: 117.288, waterQuality: "II类", river: "不牢河", manager: "孙七", phone: "13500135000", updateTime: "2026-03-18 08:00",
     basin: "淮河流域", entryType: "明渠", flowType: "连续", gateType: "闸门", receivingWater: "不牢河", drainageChar: "工业废水", region: "铜山区", address: "工业园5号", grid: "网格E5", responsibleEntity: "某某制造厂", industryDept: "工信局", attachments: [], auditStatus: "rejected", cancelStatus: "active", qrCode: ""
   },
   { 
-    id: "EB320312006", name: "大沙河排污口", type: "农业排口", status: "normal", lat: 34.6, lng: 117.5, waterQuality: "III类", river: "大沙河", manager: "周八", phone: "13400134000", updateTime: "2026-03-18 07:30",
+    id: "EB320312006", name: "大沙河排污口", type: "农业排口", status: "normal", lat: 34.195, lng: 117.135, waterQuality: "III类", river: "大沙河", manager: "周八", phone: "13400134000", updateTime: "2026-03-18 07:30",
     basin: "淮河流域", entryType: "明渠", flowType: "间歇", gateType: "泵站", receivingWater: "大沙河", drainageChar: "农田退水", region: "铜山区", address: "大沙河镇6号", grid: "网格F6", responsibleEntity: "大沙河镇政府", industryDept: "农业农村局", attachments: [], auditStatus: "approved", cancelStatus: "cancelled", qrCode: "qr-006"
   },
   { 
-    id: "EB320312007", name: "丁万河排污口", type: "工业排污口", status: "normal", lat: 34.25, lng: 117.15, waterQuality: "II类", river: "丁万河", manager: "吴九", phone: "13300133000", updateTime: "2026-03-18 10:15",
+    id: "EB320312007", name: "丁万河排污口", type: "工业排污口", status: "normal", lat: 34.272, lng: 117.245, waterQuality: "II类", river: "丁万河", manager: "吴九", phone: "13300133000", updateTime: "2026-03-18 10:15",
     basin: "淮河流域", entryType: "暗管", flowType: "连续", gateType: "无", receivingWater: "丁万河", drainageChar: "工业废水", region: "铜山区", address: "开发区7号", grid: "网格G7", responsibleEntity: "某某科技公司", industryDept: "环保局", attachments: [], auditStatus: "approved", cancelStatus: "active", qrCode: "qr-007"
   },
   { 
-    id: "EB320312008", name: "京杭运河排污口", type: "城镇污水处理厂排污口", status: "warning", lat: 34.35, lng: 117.25, waterQuality: "V类", river: "京杭运河", manager: "郑十", phone: "13200132000", updateTime: "2026-03-18 09:45",
+    id: "EB320312008", name: "京杭运河排污口", type: "城镇污水处理厂排污口", status: "warning", lat: 34.188, lng: 117.262, waterQuality: "V类", river: "京杭运河", manager: "郑十", phone: "13200132000", updateTime: "2026-03-18 09:45",
     basin: "淮河流域", entryType: "明渠", flowType: "连续", gateType: "闸门", receivingWater: "京杭运河", drainageChar: "生活污水", region: "铜山区", address: "运河镇8号", grid: "网格H8", responsibleEntity: "运河污水处理厂", industryDept: "住建局", attachments: [], auditStatus: "approved", cancelStatus: "active", qrCode: "qr-008"
   },
   { 
-    id: "EB320312009", name: "废黄河排污口", type: "农业排口", status: "normal", lat: 34.15, lng: 117.05, waterQuality: "III类", river: "废黄河", manager: "钱一", phone: "13100131000", updateTime: "2026-03-18 10:20",
+    id: "EB320312009", name: "废黄河排污口", type: "农业排口", status: "normal", lat: 34.241, lng: 117.085, waterQuality: "III类", river: "废黄河", manager: "钱一", phone: "13100131000", updateTime: "2026-03-18 10:20",
     basin: "黄河流域", entryType: "明渠", flowType: "间歇", gateType: "泵站", receivingWater: "废黄河", drainageChar: "农田退水", region: "铜山区", address: "废黄河村9号", grid: "网格I9", responsibleEntity: "废黄河村委会", industryDept: "农业农村局", attachments: [], auditStatus: "pending", cancelStatus: "active", qrCode: ""
   },
   { 
-    id: "EB320312010", name: "骆马湖排污口", type: "其他排口", status: "offline", lat: 34.45, lng: 117.35, waterQuality: "II类", river: "骆马湖", manager: "孙二", phone: "13000130000", updateTime: "2026-03-17 16:00",
+    id: "EB320312010", name: "骆马湖排污口", type: "其他排口", status: "offline", lat: 34.312, lng: 117.305, waterQuality: "II类", river: "骆马湖", manager: "孙二", phone: "13000130000", updateTime: "2026-03-17 16:00",
     basin: "淮河流域", entryType: "暗管", flowType: "间歇", gateType: "无", receivingWater: "骆马湖", drainageChar: "混合污水", region: "铜山区", address: "骆马湖镇10号", grid: "网格J10", responsibleEntity: "骆马湖镇政府", industryDept: "环保局", attachments: [], auditStatus: "approved", cancelStatus: "active", qrCode: "qr-010"
   },
   { 
-    id: "EB320312011", name: "新沂河排污口", type: "工业排污口", status: "normal", lat: 34.55, lng: 117.45, waterQuality: "III类", river: "新沂河", manager: "周三", phone: "18900189000", updateTime: "2026-03-18 08:30",
+    id: "EB320312011", name: "新沂河排污口", type: "工业排污口", status: "normal", lat: 34.215, lng: 117.181, waterQuality: "III类", river: "新沂河", manager: "周三", phone: "18900189000", updateTime: "2026-03-18 08:30",
     basin: "淮河流域", entryType: "明渠", flowType: "连续", gateType: "闸门", receivingWater: "新沂河", drainageChar: "工业废水", region: "铜山区", address: "新沂河村11号", grid: "网格K11", responsibleEntity: "某某材料厂", industryDept: "工信局", attachments: [], auditStatus: "approved", cancelStatus: "active", qrCode: "qr-011"
   },
   { 
-    id: "EB320312012", name: "沭河排污口", type: "农业排口", status: "maintenance", lat: 34.65, lng: 117.55, waterQuality: "IV类", river: "沭河", manager: "吴四", phone: "18800188000", updateTime: "2026-03-16 14:20",
+    id: "EB320312012", name: "沭河排污口", type: "农业排口", status: "maintenance", lat: 34.321, lng: 117.145, waterQuality: "IV类", river: "沭河", manager: "吴四", phone: "18800188000", updateTime: "2026-03-16 14:20",
     basin: "淮河流域", entryType: "明渠", flowType: "间歇", gateType: "泵站", receivingWater: "沭河", drainageChar: "农田退水", region: "铜山区", address: "沭河镇12号", grid: "网格L12", responsibleEntity: "沭河镇政府", industryDept: "农业农村局", attachments: [], auditStatus: "approved", cancelStatus: "cancelled", qrCode: "qr-012"
   },
 ];

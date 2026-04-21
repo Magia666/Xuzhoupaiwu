@@ -9,13 +9,21 @@ import {
   Bell,
   User,
   LogOut,
-  MonitorPlay
+  MonitorPlay,
+  FileCheck,
+  SearchCode,
+  AlertOctagon,
+  Signpost
 } from "lucide-react";
 import { cn } from "../lib/utils";
 
 const navItems = [
-  { name: "工作台", path: "/", icon: LayoutDashboard },
+  { name: "首页", path: "/", icon: LayoutDashboard },
   { name: "一口一档", path: "/outfalls", icon: MapPin },
+  { name: "排查记录", path: "/inspection", icon: FileCheck },
+  { name: "溯源信息", path: "/traceability", icon: SearchCode },
+  { name: "整治管理", path: "/remediation", icon: AlertOctagon },
+  { name: "标识牌管理", path: "/signboard", icon: Signpost },
   { name: "在线监测", path: "/monitoring", icon: Activity },
   { name: "预警告警", path: "/warnings", icon: AlertTriangle },
   { name: "运维管理", path: "/maintenance", icon: Wrench },

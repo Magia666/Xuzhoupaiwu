@@ -23,13 +23,26 @@ import {
   TrendingUp,
   Camera,
   Cpu,
-  Wifi
+  Wifi,
+  CheckCircle,
+  Target
 } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { cn } from "../lib/utils";
 import { mockStats, mockOutfalls, mockWarnings } from "../lib/mockData";
+
+const mockTrendData = [
+  { time: '00:00', cod: 12.5, nh3n: 0.8 },
+  { time: '04:00', cod: 15.2, nh3n: 1.2 },
+  { time: '08:00', cod: 18.4, nh3n: 1.5 },
+  { time: '12:00', cod: 14.1, nh3n: 0.9 },
+  { time: '16:00', cod: 16.8, nh3n: 1.3 },
+  { time: '20:00', cod: 13.5, nh3n: 0.7 },
+  { time: '24:00', cod: 15.0, nh3n: 1.0 },
+];
 
 // Fix Leaflet's default icon path issues with webpack/vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -114,20 +127,15 @@ function LayerToggle({ icon: Icon, label, checked, onChange }: { icon: any, labe
     <button 
       onClick={() => onChange(!checked)}
       className={cn(
-        "flex flex-col items-center gap-2 transition-colors group relative",
-        checked ? "text-cyan-400" : "text-cyan-500/50 hover:text-cyan-300"
+        "flex flex-col items-center justify-center gap-1.5 py-2 px-1 rounded transition-all duration-300 relative overflow-hidden group border min-w-[64px]",
+        checked 
+          ? "bg-cyan-950/80 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.3)] text-cyan-400" 
+          : "bg-[#0a192f]/50 border-cyan-900/50 text-cyan-500/50 hover:border-cyan-500/50 hover:text-cyan-300"
       )}
     >
-      <div className={cn(
-        "p-3 rounded transition-all duration-300 relative overflow-hidden",
-        checked 
-          ? "bg-cyan-950/80 border border-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.5)]" 
-          : "bg-[#0a192f]/50 border border-cyan-900/50 group-hover:border-cyan-500/50"
-      )}>
-        {checked && <div className="absolute inset-0 bg-cyan-400/10 animate-pulse" />}
-        <Icon className={cn("w-6 h-6 relative z-10", checked ? "drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]" : "")} />
-      </div>
-      <span className="text-xs font-bold tracking-widest font-mono">{label}</span>
+      {checked && <div className="absolute inset-0 bg-cyan-400/10 animate-pulse" />}
+      <Icon className={cn("w-5 h-5 relative z-10", checked ? "drop-shadow-[0_0_5px_currentColor]" : "")} />
+      <span className="text-[10px] whitespace-nowrap font-bold tracking-widest font-mono relative z-10">{label}</span>
     </button>
   );
 }
@@ -268,6 +276,95 @@ function MarkerInfoCard({ marker, onClose }: { marker: any, onClose: () => void 
   );
 }
 
+function KPIDataCard({ title, icon: Icon, mainValue, mainUnit, sub1Label, sub1Value, sub2Label, sub2Value, isWarning = false }: any) {
+  return (
+    <div className={cn(
+      "relative bg-[#061121]/80 backdrop-blur-md border rounded-lg p-3 flex flex-col justify-between shadow-[inset_0_0_20px_rgba(6,182,212,0.05)] overflow-hidden transition-all duration-300 h-[116px]",
+      isWarning ? "border-red-500/50 shadow-[inset_0_0_20px_rgba(239,68,68,0.1)]" : "border-cyan-500/30",
+      "hover:bg-[#0a192f]/90 relative group"
+    )}>
+      {/* Tech Corners */}
+      <div className={cn("absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 pointer-events-none", isWarning ? "border-red-500" : "border-cyan-500/70")} />
+      <div className={cn("absolute top-0 right-0 w-2 h-2 border-t-2 border-r-2 pointer-events-none", isWarning ? "border-red-500" : "border-cyan-500/70")} />
+      <div className={cn("absolute bottom-0 left-0 w-2 h-2 border-b-2 border-l-2 pointer-events-none", isWarning ? "border-red-500" : "border-cyan-500/70")} />
+      <div className={cn("absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 pointer-events-none", isWarning ? "border-red-500" : "border-cyan-500/70")} />
+      
+      {isWarning && <div className="absolute inset-0 bg-red-500/5 animate-pulse pointer-events-none" />}
+      <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+      <div className="flex items-center justify-between z-10 w-full mb-0.5">
+        <span className="text-[11px] font-bold text-cyan-50 tracking-wider font-mono truncate mr-1">{title}</span>
+        <Icon className={cn("w-3.5 h-3.5 shrink-0", isWarning ? "text-red-400" : "text-cyan-400")} />
+      </div>
+      
+      <div className="flex items-baseline gap-1 z-10">
+        <span className={cn("text-2xl font-bold font-mono tracking-tight leading-none", isWarning ? "text-red-400 drop-shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-pulse" : "text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)]")}>
+          {mainValue}
+        </span>
+        {mainUnit && <span className="text-[10px] text-cyan-500/70">{mainUnit}</span>}
+      </div>
+      
+      <div className="flex flex-col gap-1 z-10 pt-1 border-t border-cyan-900/50">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-cyan-500/80 whitespace-nowrap">{sub1Label}</span>
+          <span className="text-[10px] text-cyan-100 font-mono font-bold whitespace-nowrap">{sub1Value}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] text-cyan-500/80 whitespace-nowrap">{sub2Label}</span>
+          <span className={cn("text-[10px] font-mono font-bold whitespace-nowrap", isWarning ? "text-red-400" : (sub2Value.includes('↓') || sub2Value.includes('↑') ? "text-emerald-400" : "text-cyan-100"))}>{sub2Value}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const CenterTopBanner = () => (
+  <motion.div 
+    initial={{ y: -50, opacity: 0 }}
+    animate={{ y: 0, opacity: 1 }}
+    transition={{ duration: 0.5 }}
+    className="absolute top-[24px] left-[488px] right-[488px] z-40 grid grid-cols-6 gap-3 pointer-events-auto"
+  >
+    <KPIDataCard 
+      title="入河排污口基数" icon={Layers} 
+      mainValue={mockStats.totalOutfalls.toLocaleString()} mainUnit="个"
+      sub1Label="规范整治完成" sub1Value={`${mockStats.completedRectification} 个`}
+      sub2Label="档案完善率" sub2Value="100%"
+    />
+    <KPIDataCard 
+      title="排污口合规率" icon={CheckCircle} 
+      mainValue={mockStats.waterQualityCompliance} mainUnit="%"
+      sub1Label="持证排污口" sub1Value={`${mockStats.licensedOutfalls} 个`}
+      sub2Label="应持证率" sub2Value="98.5%"
+    />
+    <KPIDataCard 
+      title="当日排放总量" icon={Droplets} 
+      mainValue={mockStats.todayDischarge} mainUnit="万m³"
+      sub1Label="月累计排放" sub1Value={`${mockStats.monthDischarge} 万m³`}
+      sub2Label="环比变化率" sub2Value={`${mockStats.dischargeChange > 0 ? '↑' : '↓'} ${Math.abs(mockStats.dischargeChange)}%`}
+    />
+    <KPIDataCard 
+      title="水质综合达标" icon={Activity} 
+      mainValue={mockStats.waterQualityPassRate} mainUnit="%"
+      sub1Label="当日超标数" sub1Value={`${mockStats.todayExceed} 次`}
+      sub2Label="当月累计超标" sub2Value={`${mockStats.monthExceed} 次`}
+    />
+    <KPIDataCard 
+      title="重点断面达标" icon={Target} 
+      mainValue={mockStats.sectionPassRate} mainUnit="%"
+      sub1Label="国省市控总数" sub1Value={`${mockStats.totalSections} 个`}
+      sub2Label="优良水体比例" sub2Value={`${mockStats.excellentWaterRate}%`}
+    />
+    <KPIDataCard 
+      title="告警事件闭环" icon={AlertTriangle} 
+      mainValue={mockStats.alarmResolutionRate} mainUnit="%"
+      sub1Label="总数/未处置" sub1Value={`${mockStats.totalWarnings} / ${mockStats.unhandledWarnings} 件`}
+      sub2Label="处置及时率" sub2Value="95.0%"
+      isWarning={mockStats.unhandledWarnings > 0}
+    />
+  </motion.div>
+);
+
 export default function Screen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedMarker, setSelectedMarker] = useState<any>(null);
@@ -315,31 +412,14 @@ export default function Screen() {
       
       {/* Top Warning Banner */}
       {hasLevel1Warning && (
-        <div className="absolute top-0 left-0 right-0 bg-red-600/90 text-white py-2 px-4 flex items-center justify-center gap-2 z-[60] animate-pulse">
+        <div className="bg-red-600/90 text-white py-2 px-4 flex items-center justify-center gap-2 z-[60] animate-pulse shrink-0 w-full relative">
           <AlertTriangle className="w-5 h-5" />
           <span className="font-bold tracking-wider">存在未处理的一级预警，请立即处置！</span>
         </div>
       )}
 
-      {/* Global HUD Frame */}
-      <div className="absolute inset-4 z-50 pointer-events-none border border-cyan-500/20 rounded-2xl overflow-hidden shadow-[inset_0_0_50px_rgba(6,182,212,0.05)]">
-         <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-cyan-400/60 rounded-tl-2xl" />
-         <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-cyan-400/60 rounded-tr-2xl" />
-         <div className="absolute bottom-0 left-0 w-20 h-20 border-b-2 border-l-2 border-cyan-400/60 rounded-bl-2xl" />
-         <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-cyan-400/60 rounded-br-2xl" />
-         
-         {/* Decorative crosshairs */}
-         <div className="absolute top-1/2 left-0 w-4 h-[1px] bg-cyan-500/50" />
-         <div className="absolute top-1/2 right-0 w-4 h-[1px] bg-cyan-500/50" />
-         <div className="absolute top-0 left-1/2 w-[1px] h-4 bg-cyan-500/50" />
-         <div className="absolute bottom-0 left-1/2 w-[1px] h-4 bg-cyan-500/50" />
-      </div>
-
       {/* Header */}
-      <header className={cn(
-        "h-20 flex items-center justify-between px-8 z-40 relative bg-[#061121]/80 backdrop-blur-md border-b border-cyan-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.3)]",
-        hasLevel1Warning ? "mt-10" : ""
-      )}>
+      <header className="h-20 shrink-0 flex items-center justify-between px-8 z-40 relative bg-[#061121]/80 backdrop-blur-md border-b border-cyan-500/30 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
         <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-cyan-500/0 via-cyan-400/50 to-cyan-500/0" />
         <div className="flex-1 flex items-center gap-5">
           <div className="flex items-center justify-center w-12 h-12 rounded border border-cyan-500/50 bg-cyan-950/50 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
@@ -378,6 +458,21 @@ export default function Screen() {
 
       {/* Main Content Area */}
       <div className="flex-1 relative z-0 w-full h-full overflow-hidden">
+        
+        {/* Global HUD Frame now securely behind panels but above map */}
+        <div className="absolute inset-[10px] z-20 pointer-events-none border border-cyan-500/20 rounded-xl overflow-hidden shadow-[inset_0_0_50px_rgba(6,182,212,0.05)]">
+           <div className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-cyan-400/60 rounded-tl-xl" />
+           <div className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-cyan-400/60 rounded-tr-xl" />
+           <div className="absolute bottom-0 left-0 w-20 h-20 border-b-2 border-l-2 border-cyan-400/60 rounded-bl-xl" />
+           <div className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-cyan-400/60 rounded-br-xl" />
+           
+           {/* Decorative crosshairs */}
+           <div className="absolute top-1/2 left-0 w-4 h-[1px] bg-cyan-500/50" />
+           <div className="absolute top-1/2 right-0 w-4 h-[1px] bg-cyan-500/50" />
+        </div>
+        
+        {/* Top Main KPIs Component */}
+        <CenterTopBanner />
         
         {/* Leaflet Map */}
         <div className="absolute inset-0 z-0">
@@ -442,12 +537,12 @@ export default function Screen() {
           )}
         </AnimatePresence>
 
-        {/* Left Panel: Real-time Point Info */}
+        {/* Left Panel: 统计分析 (Statistical Analysis) */}
         <motion.div 
           initial={{ x: -50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
-          className="absolute left-[6px] top-[6px] bottom-[6px] w-[440px] z-30 pointer-events-none transition-all duration-300"
+          className="absolute left-[24px] top-[24px] bottom-[24px] w-[440px] z-30 pointer-events-none transition-all duration-300"
         >
           <div className="pointer-events-auto flex flex-col h-full bg-[#061121]/80 backdrop-blur-md border border-cyan-500/30 rounded-xl shadow-[inset_0_0_20px_rgba(6,182,212,0.05)] relative overflow-hidden">
             {/* Tech Corners */}
@@ -456,67 +551,71 @@ export default function Screen() {
             <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyan-500/70 pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan-500/70 pointer-events-none" />
             
-            {/* Important Data Card */}
+            {/* Outfall Types Chart substitute */}
             <div className="p-5 shrink-0 border-b border-cyan-500/20 hover:bg-cyan-900/10 transition-colors">
               <h4 className="text-base font-bold text-cyan-400 uppercase tracking-widest mb-5 flex items-center gap-2">
-                <Activity className="w-6 h-6" /> 核心数据概览
+                <Layers className="w-6 h-6" /> 排污口类型分布占比
               </h4>
-              <div className="grid grid-cols-2 gap-5">
-                <StatBadge label="排口总数" value={mockStats.totalOutfalls} unit="个" color="text-blue-400" trend="+12" />
-                <StatBadge label="在线监测" value={mockStats.onlineMonitoring} unit="个" color="text-emerald-400" trend="+3" />
-                <StatBadge label="达标率" value={`${mockStats.waterQualityCompliance}%`} color="text-emerald-400" trend="+0.5%" />
-                <StatBadge label="未处置预警" value={mockStats.unhandledWarnings} unit="条" color="text-red-400" />
-              </div>
-            </div>
-
-            {/* National Assessment Compliance */}
-            <div className="p-5 shrink-0 border-b border-cyan-500/20 hover:bg-cyan-900/10 transition-colors">
-              <h4 className="text-base font-bold text-cyan-400 uppercase tracking-widest mb-5 flex items-center gap-2">
-                <ShieldAlert className="w-6 h-6" /> 国家考核年达标情况
-              </h4>
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-base text-cyan-100">年度目标完成率</span>
-                  <span className="text-xl font-bold text-emerald-400 font-mono drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]">95.8%</span>
+                  <span className="text-sm text-cyan-100 font-bold">工业排污口 (35%)</span>
+                  <span className="text-sm font-bold text-blue-400 font-mono drop-shadow-[0_0_5px_rgba(96,165,250,0.8)]">436 个</span>
                 </div>
-                <div className="h-3 w-full bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-900/50">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: '95.8%' }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 relative"
-                  >
-                    <div className="absolute top-0 right-0 bottom-0 w-6 bg-white/30 animate-[shimmer_2s_infinite]" />
-                  </motion.div>
+                <div className="h-2 w-full bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-900/50">
+                  <motion.div initial={{ width: 0 }} animate={{ width: '35%' }} transition={{ duration: 1.5 }} className="h-full bg-blue-400" />
                 </div>
-                <div className="grid grid-cols-3 gap-4 mt-2">
-                  <div className="flex flex-col items-center bg-cyan-950/30 rounded border border-cyan-900/30 p-3">
-                    <span className="text-sm text-cyan-500/70">考核断面</span>
-                    <span className="text-base font-bold text-cyan-100 font-mono">12个</span>
-                  </div>
-                  <div className="flex flex-col items-center bg-cyan-950/30 rounded border border-cyan-900/30 p-3">
-                    <span className="text-sm text-cyan-500/70">已达标</span>
-                    <span className="text-base font-bold text-emerald-400 font-mono">11个</span>
-                  </div>
-                  <div className="flex flex-col items-center bg-cyan-950/30 rounded border border-cyan-900/30 p-3">
-                    <span className="text-sm text-cyan-500/70">未达标</span>
-                    <span className="text-base font-bold text-red-400 font-mono">1个</span>
-                  </div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-sm text-cyan-100 font-bold">农业排污口 (45%)</span>
+                  <span className="text-sm font-bold text-emerald-400 font-mono drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]">560 个</span>
+                </div>
+                <div className="h-2 w-full bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-900/50">
+                  <motion.div initial={{ width: 0 }} animate={{ width: '45%' }} transition={{ duration: 1.5, delay: 0.2 }} className="h-full bg-emerald-400" />
+                </div>
+                <div className="flex items-center justify-between mt-1">
+                  <span className="text-sm text-cyan-100 font-bold">城镇生活污水等其它 (20%)</span>
+                  <span className="text-sm font-bold text-cyan-400 font-mono drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]">249 个</span>
+                </div>
+                <div className="h-2 w-full bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-900/50">
+                  <motion.div initial={{ width: 0 }} animate={{ width: '20%' }} transition={{ duration: 1.5, delay: 0.4 }} className="h-full bg-cyan-400" />
                 </div>
               </div>
             </div>
 
             <div className="flex-1 flex flex-col min-h-0 hover:bg-cyan-900/10 transition-colors">
-              <div className="p-4 border-b border-cyan-500/20 flex items-center gap-2 bg-gradient-to-r from-cyan-950/50 to-transparent shrink-0 relative z-10">
-                <MapPin className="w-5 h-5 text-cyan-400" />
-                <span className="font-bold text-base text-cyan-100 tracking-widest">实时点位信息</span>
-                <span className="flex h-2.5 w-2.5 relative ml-auto">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.8)]"></span>
-                </span>
+              <div className="p-4 border-b border-cyan-500/20 flex flex-col gap-4 bg-gradient-to-r from-cyan-950/50 to-transparent shrink-0 relative z-10">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-cyan-400" />
+                  <span className="font-bold text-base text-cyan-100 tracking-widest">实时点位信息</span>
+                  <span className="flex h-2.5 w-2.5 relative ml-auto">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.8)]"></span>
+                  </span>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  <div className="flex flex-col items-center justify-center bg-cyan-950/30 rounded border border-cyan-900/30 py-2 relative overflow-hidden group/stat">
+                    <div className="absolute top-0 right-0 w-8 h-8 bg-blue-500/10 blur-xl rounded-full group-hover/stat:bg-blue-500/20 transition-colors" />
+                    <span className="text-xs text-cyan-500/70 mb-1 z-10">区域展示</span>
+                    <div className="flex items-baseline gap-1 z-10"><span className="text-lg font-bold font-mono text-blue-400 drop-shadow-[0_0_5px_currentColor]">{mockOutfalls.length}</span><span className="text-[10px] text-cyan-500/50">个</span></div>
+                  </div>
+                  <div className="flex flex-col items-center justify-center bg-cyan-950/30 rounded border border-cyan-900/30 py-2 relative overflow-hidden group/stat">
+                    <div className="absolute top-0 right-0 w-8 h-8 bg-emerald-500/10 blur-xl rounded-full group-hover/stat:bg-emerald-500/20 transition-colors" />
+                    <span className="text-xs text-cyan-500/70 mb-1 z-10">正常达标</span>
+                    <div className="flex items-baseline gap-1 z-10"><span className="text-lg font-bold font-mono text-emerald-400 drop-shadow-[0_0_5px_currentColor]">{mockOutfalls.filter(o => o.status === 'normal').length}</span><span className="text-[10px] text-cyan-500/50">个</span></div>
+                  </div>
+                  <div className="flex flex-col items-center justify-center bg-cyan-950/30 rounded border border-cyan-900/30 py-2 relative overflow-hidden group/stat">
+                    <div className="absolute top-0 right-0 w-8 h-8 bg-slate-500/10 blur-xl rounded-full group-hover/stat:bg-slate-500/20 transition-colors" />
+                    <span className="text-xs text-cyan-500/70 mb-1 z-10">设施离线</span>
+                    <div className="flex items-baseline gap-1 z-10"><span className="text-lg font-bold font-mono text-slate-400 drop-shadow-[0_0_5px_currentColor]">{mockOutfalls.filter(o => o.status === 'offline').length}</span><span className="text-[10px] text-cyan-500/50">个</span></div>
+                  </div>
+                  <div className="flex flex-col items-center justify-center bg-cyan-950/30 rounded border border-cyan-900/30 py-2 relative overflow-hidden group/stat">
+                    <div className="absolute top-0 right-0 w-8 h-8 bg-red-500/10 blur-xl rounded-full group-hover/stat:bg-red-500/20 transition-colors" />
+                    <span className="text-xs text-cyan-500/70 mb-1 z-10">异常排口</span>
+                    <div className="flex items-baseline gap-1 z-10"><span className="text-lg font-bold font-mono text-red-400 drop-shadow-[0_0_5px_currentColor]">{mockOutfalls.filter(o => o.status === 'warning').length}</span><span className="text-[10px] text-cyan-500/50">重点</span></div>
+                  </div>
+                </div>
               </div>
-              <div className="flex-1 overflow-y-auto custom-scrollbar p-4 z-10">
-                <div className="grid grid-cols-2 gap-3">
+              <div className="flex-1 overflow-y-auto custom-scrollbar p-3 z-10">
+                <div className="flex flex-col gap-2">
                 {(() => {
                   const sorted = [...mockOutfalls].sort((a, b) => {
                     const weight: Record<string, number> = { normal: 1, maintenance: 2, offline: 3, warning: 4 };
@@ -569,12 +668,12 @@ export default function Screen() {
           </div>
         </motion.div>
 
-        {/* Right Panel: Legend & Warnings */}
+        {/* Right Panel: 实时告警 & 数据分析 (Real-time Alarms) */}
         <motion.div 
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
-          className="absolute right-[6px] top-[6px] bottom-[6px] w-[440px] z-30 pointer-events-none transition-all duration-300"
+          className="absolute right-[24px] top-[24px] bottom-[24px] w-[440px] z-30 pointer-events-none transition-all duration-300"
         >
           <div className="pointer-events-auto flex flex-col h-full bg-[#061121]/80 backdrop-blur-md border border-cyan-500/30 rounded-xl shadow-[inset_0_0_20px_rgba(6,182,212,0.05)] relative overflow-hidden">
             {/* Tech Corners */}
@@ -583,16 +682,36 @@ export default function Screen() {
             <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyan-500/70 pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan-500/70 pointer-events-none" />
             
-            {/* Legend */}
+            {/* Trend Chart */}
             <div className="p-5 shrink-0 border-b border-cyan-500/20 hover:bg-cyan-900/10 transition-colors">
               <h4 className="text-base font-bold text-cyan-400 uppercase tracking-widest mb-5 flex items-center gap-2">
-                <Layers className="w-6 h-6" /> 排口状态图例
+                <TrendingUp className="w-6 h-6" /> 排放总量趋势分析
               </h4>
-              <div className="grid grid-cols-2 gap-5 text-base text-cyan-100 font-mono">
-                <div className="flex items-center gap-3"><div className="w-4 h-4 rounded bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] border border-emerald-300/50" /> 正常达标</div>
-                <div className="flex items-center gap-3"><div className="w-4 h-4 rounded bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] border border-red-300/50" /> 超标预警</div>
-                <div className="flex items-center gap-3"><div className="w-4 h-4 rounded bg-slate-500 shadow-[0_0_10px_rgba(100,116,139,0.8)] border border-slate-300/50" /> 设备离线</div>
-                <div className="flex items-center gap-3"><div className="w-4 h-4 rounded bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.8)] border border-yellow-300/50" /> 整治中</div>
+              <div className="h-44 w-full text-xs">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={mockTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorCod" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="colorNh3n" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#083344" vertical={false} />
+                    <XAxis dataKey="time" stroke="#0891b2" tickLine={false} axisLine={false} />
+                    <YAxis stroke="#0891b2" tickLine={false} axisLine={false} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: 'rgba(6, 17, 33, 0.9)', borderColor: 'rgba(6, 182, 212, 0.5)', borderRadius: '8px' }}
+                      itemStyle={{ color: '#cffafe' }}
+                      labelStyle={{ color: '#06b6d4' }}
+                    />
+                    <Area type="monotone" dataKey="cod" name="COD (mg/L)" stroke="#06b6d4" strokeWidth={2} fillOpacity={1} fill="url(#colorCod)" />
+                    <Area type="monotone" dataKey="nh3n" name="氨氮 (mg/L)" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorNh3n)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
@@ -674,49 +793,89 @@ export default function Screen() {
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          className="absolute bottom-[6px] left-[452px] right-[452px] z-20 pointer-events-none flex items-end justify-center"
+          className="absolute bottom-[24px] left-[488px] right-[488px] h-[116px] z-20 pointer-events-none flex"
         >
-          <div className="pointer-events-auto flex flex-col items-center gap-4 bg-[#061121]/80 backdrop-blur-md border border-cyan-500/30 rounded-xl shadow-[inset_0_0_20px_rgba(6,182,212,0.05)] px-8 py-4 relative overflow-hidden w-max">
+          <div className="pointer-events-auto w-full h-full flex items-center justify-between bg-[#061121]/80 backdrop-blur-md border border-cyan-500/30 rounded-lg shadow-[inset_0_0_20px_rgba(6,182,212,0.05)] px-6 relative overflow-hidden">
             {/* Tech Corners */}
             <div className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyan-500/70 pointer-events-none" />
             <div className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyan-500/70 pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyan-500/70 pointer-events-none" />
             <div className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan-500/70 pointer-events-none" />
 
-            {/* Real-time Important Data Bar */}
-            <div className="flex items-center gap-10 relative z-10">
-              <div className="flex items-center gap-3">
-                <Activity className="w-5 h-5 text-cyan-400 animate-pulse" />
-                <span className="text-sm text-cyan-100">实时总流量: <span className="font-mono text-cyan-400 font-bold text-lg drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]">12,450</span> m³/d</span>
+            {/* Left: Core Metrics */}
+            <div className="flex items-center gap-6 shrink-0 z-10">
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Activity className="w-4 h-4 text-cyan-400" />
+                  <span className="text-xs text-cyan-100/90 font-bold tracking-wider">实时总流量</span>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-mono text-cyan-400 font-bold text-2xl drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]">{mockStats.flowToday.toLocaleString()}</span>
+                  <span className="text-[10px] text-cyan-500/60 font-medium">m³/d</span>
+                </div>
               </div>
-              <div className="w-px h-4 bg-cyan-900/50" />
-              <div className="flex items-center gap-3">
-                <Droplets className="w-5 h-5 text-emerald-400 animate-pulse" />
-                <span className="text-sm text-cyan-100">平均 COD: <span className="font-mono text-emerald-400 font-bold text-lg drop-shadow-[0_0_5px_rgba(16,185,129,0.8)]">15.2</span> mg/L</span>
+              <div className="w-px h-12 bg-cyan-900/50" />
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Droplets className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs text-cyan-100/90 font-bold tracking-wider">平均 COD</span>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-mono text-emerald-400 font-bold text-2xl drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]">{mockStats.averageCOD}</span>
+                  <span className="text-[10px] text-cyan-500/60 font-medium">mg/L</span>
+                </div>
               </div>
-              <div className="w-px h-4 bg-cyan-900/50" />
-              <div className="flex items-center gap-3">
-                <Wifi className="w-5 h-5 text-blue-400 animate-pulse" />
-                <span className="text-sm text-cyan-100">设备在线率: <span className="font-mono text-blue-400 font-bold text-lg drop-shadow-[0_0_5px_rgba(96,165,250,0.8)]">98.5%</span></span>
+              <div className="w-px h-12 bg-cyan-900/50" />
+              <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Wifi className="w-4 h-4 text-blue-400" />
+                  <span className="text-xs text-cyan-100/90 font-bold tracking-wider">设备在线率</span>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-mono text-blue-400 font-bold text-2xl drop-shadow-[0_0_8px_rgba(96,165,250,0.8)]">{mockStats.deviceOnlineRate}</span>
+                  <span className="text-[10px] text-cyan-500/60 font-medium">%</span>
+                </div>
               </div>
             </div>
 
-            {/* Layer Management Card */}
-            <div className="flex items-center gap-8 relative z-10 pt-2 border-t border-cyan-500/20">
-              {/* Base Layers */}
-              <div className="flex items-center gap-6 border-r border-cyan-900/50 pr-8">
+            {/* Middle: Functional Buttons */}
+            <div className="flex items-center justify-center flex-1 px-4 z-10">
+               <div className="flex items-center gap-2">
                 <LayerToggle icon={Map} label="卫星地图" checked={baseLayers.satellite} onChange={(c) => setBaseLayers({...baseLayers, satellite: c})} />
                 <LayerToggle icon={Activity} label="行政区划" checked={baseLayers.admin} onChange={(c) => setBaseLayers({...baseLayers, admin: c})} />
                 <LayerToggle icon={Droplets} label="河道水系" checked={baseLayers.river} onChange={(c) => setBaseLayers({...baseLayers, river: c})} />
               </div>
-              {/* Biz Layers */}
-              <div className="flex items-center gap-6">
+              <div className="w-px h-12 bg-cyan-900/50 mx-6" />
+              <div className="flex items-center gap-2">
                 <LayerToggle icon={MapPin} label="排口点位" checked={bizLayers.outfall} onChange={(c) => setBizLayers({...bizLayers, outfall: c})} />
                 <LayerToggle icon={Video} label="监测站点" checked={bizLayers.station} onChange={(c) => setBizLayers({...bizLayers, station: c})} />
                 <LayerToggle icon={Factory} label="污染源" checked={bizLayers.pollution} onChange={(c) => setBizLayers({...bizLayers, pollution: c})} />
-                <LayerToggle icon={ShieldAlert} label="水源保护地" checked={bizLayers.waterSource} onChange={(c) => setBizLayers({...bizLayers, waterSource: c})} />
+                <LayerToggle icon={ShieldAlert} label="水源保护" checked={bizLayers.waterSource} onChange={(c) => setBizLayers({...bizLayers, waterSource: c})} />
               </div>
             </div>
+
+            {/* Right: Legend */}
+            <div className="flex items-center shrink-0 z-10">
+              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                <div className="flex items-center gap-2.5 text-xs text-cyan-100 font-mono font-bold">
+                  <div className="w-3 h-3 rounded box-border bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] border border-emerald-300/50" /> 
+                  正常达标
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-cyan-100 font-mono font-bold">
+                  <div className="w-3 h-3 rounded box-border bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)] border border-red-300/50" /> 
+                  超标预警
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-cyan-100 font-mono font-bold">
+                  <div className="w-3 h-3 rounded box-border bg-slate-500 shadow-[0_0_10px_rgba(100,116,139,0.8)] border border-slate-300/50" /> 
+                  设施离线
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-cyan-100 font-mono font-bold">
+                  <div className="w-3 h-3 rounded box-border bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.8)] border border-yellow-300/50" /> 
+                  整治施工
+                </div>
+              </div>
+            </div>
+
           </div>
         </motion.div>
 

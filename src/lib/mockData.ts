@@ -1,25 +1,40 @@
 export const mockStats = {
-  totalOutfalls: 1245,
-  completedRectification: 982,
-  onlineMonitoring: 1115,
-  waterQualityCompliance: 94.6,
-  licensedOutfalls: 856,
-  todayDischarge: 12.8, // 万m³
+  totalOutfalls: 12,
+  completedRectification: 1, // Matches 1 '已销号' in mockRemediations
+  onlineMonitoring: 8, // Matches 8 online items in mockMonitoringData
+  waterQualityCompliance: 75.0, // 9 out of 12 normal/offline (not warning)
+  licensedOutfalls: 11,
+  todayDischarge: 12.8,
   monthDischarge: 385,
   dischargeChange: -2.4,
-  waterQualityPassRate: 98.2,
+  waterQualityPassRate: 75.0,
   todayExceed: 0,
   monthExceed: 2,
-  sectionPassRate: 95.8,
-  totalSections: 12,
-  excellentWaterRate: 83.3,
-  alarmResolutionRate: 86.7,
-  totalWarnings: 15,
-  unhandledWarnings: 3, // Aligning directly with the 3 pending ones in mockWarnings below
+  sectionPassRate: 66.7, // 2 out of 3 sections in mockSections
+  totalSections: 3,
+  excellentWaterRate: 66.7,
+  archiveCompletionRate: 100,
+  licenseRequirementRate: 91.7, // 11 out of 12
+  processingTimelinessRate: 71.4, // 5 out of 7 processed or finishing
+  alarmResolutionRate: 28.6, // 2 out of 7 completed
+  totalWarnings: 7,
+  unhandledWarnings: 3, 
   flowToday: 12450,
   averageCOD: 15.2,
-  deviceOnlineRate: 98.5
+  deviceOnlineRate: 83.3 // 10 out of 12 (excluding offline)
 };
+
+export const mockDistribution = {
+  industrial: { count: 5, percent: 42 },
+  agricultural: { count: 4, percent: 33 },
+  urbanOther: { count: 3, percent: 25 },
+};
+
+export const mockSections = [
+  { id: "S1", name: '奎河断面', grade: 'Ⅲ类', status: '达标', color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/30' },
+  { id: "S2", name: '房亭河断面', grade: 'Ⅳ类', status: '超标', color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/30' },
+  { id: "S3", name: '故黄河断面', grade: 'Ⅱ类', status: '达标', color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/30' },
+];
 
 export const mockOutfalls = [
   { 
@@ -126,13 +141,13 @@ export const mockDetailedTrend = [
 ];
 
 export const mockWarnings = [
-  { id: "W20260318001", outfallName: "房亭河大吴排污口", type: "水质超标预警", level: 1, time: "2026-03-18 10:23:00", status: "待处理", desc: "COD超标2.5倍" },
-  { id: "W20260318002", outfallName: "故黄河汉王排污口", type: "设备故障预警", level: 2, time: "2026-03-18 09:15:00", status: "处理中", desc: "设备离线超6小时" },
-  { id: "W20260317001", outfallName: "奎河张庄排污口", type: "水质超标预警", level: 3, time: "2026-03-17 14:30:00", status: "已完成", desc: "氨氮超标0.5倍" },
-  { id: "W20260318003", outfallName: "京杭运河排污口", type: "水质超标预警", level: 1, time: "2026-03-18 10:45:00", status: "待处理", desc: "总磷超标3.0倍" },
-  { id: "W20260318004", outfallName: "骆马湖排污口", type: "设备故障预警", level: 2, time: "2026-03-18 08:20:00", status: "待处理", desc: "数据采集仪通信中断" },
-  { id: "W20260316002", outfallName: "沭河排污口", type: "水质超标预警", level: 3, time: "2026-03-16 11:10:00", status: "已完成", desc: "pH值异常" },
-  { id: "W20260318005", outfallName: "微山湖沿岸排污口", type: "设备故障预警", level: 2, time: "2026-03-18 11:05:00", status: "处理中", desc: "流量计数据异常" },
+  { id: "W20260318001", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "水质超标预警", level: 1, time: "2026-03-18 10:23:00", status: "待处理", desc: "COD超标2.5倍" },
+  { id: "W20260318002", outfallId: "EB320312003", outfallName: "故黄河汉王排污口", type: "设备故障预警", level: 2, time: "2026-03-18 09:15:00", status: "处理中", desc: "设备离线超6小时" },
+  { id: "W20260317001", outfallId: "EB320312001", outfallName: "奎河张庄排污口", type: "水质超标预警", level: 3, time: "2026-03-17 14:30:00", status: "已完成", desc: "氨氮超标0.5倍" },
+  { id: "W20260318003", outfallId: "EB320312008", outfallName: "京杭运河排污口", type: "水质超标预警", level: 1, time: "2026-03-18 10:45:00", status: "待处理", desc: "总磷超标3.0倍" },
+  { id: "W20260318004", outfallId: "EB320312010", outfallName: "骆马湖排污口", type: "设备故障预警", level: 2, time: "2026-03-18 08:20:00", status: "待处理", desc: "数据采集仪通信中断" },
+  { id: "W20260316002", outfallId: "EB320312012", outfallName: "沭河排污口", type: "水质超标预警", level: 3, time: "2026-03-16 11:10:00", status: "已完成", desc: "pH值异常" },
+  { id: "W20260318005", outfallId: "EB320312004", outfallName: "微山湖沿岸排污口", type: "设备故障预警", level: 2, time: "2026-03-18 11:05:00", status: "处理中", desc: "流量计数据异常" },
 ];
 
 export const mockTrendData = [

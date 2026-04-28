@@ -32,17 +32,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { cn } from "../lib/utils";
-import { mockStats, mockOutfalls, mockWarnings } from "../lib/mockData";
-
-const mockTrendData = [
-  { time: '00:00', cod: 12.5, nh3n: 0.8 },
-  { time: '04:00', cod: 15.2, nh3n: 1.2 },
-  { time: '08:00', cod: 18.4, nh3n: 1.5 },
-  { time: '12:00', cod: 14.1, nh3n: 0.9 },
-  { time: '16:00', cod: 16.8, nh3n: 1.3 },
-  { time: '20:00', cod: 13.5, nh3n: 0.7 },
-  { time: '24:00', cod: 15.0, nh3n: 1.0 },
-];
+import { mockStats, mockOutfalls, mockWarnings, mockDetailedTrend, mockDistribution, mockSections } from "../lib/mockData";
 
 // Fix Leaflet's default icon path issues with webpack/vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -329,13 +319,13 @@ const CenterTopBanner = () => (
       title="入河排污口基数" icon={Layers} 
       mainValue={mockStats.totalOutfalls.toLocaleString()} mainUnit="个"
       sub1Label="规范整治完成" sub1Value={`${mockStats.completedRectification} 个`}
-      sub2Label="档案完善率" sub2Value="100%"
+      sub2Label="档案完善率" sub2Value={`${mockStats.archiveCompletionRate}%`}
     />
     <KPIDataCard 
       title="排污口合规率" icon={CheckCircle} 
       mainValue={mockStats.waterQualityCompliance} mainUnit="%"
       sub1Label="持证排污口" sub1Value={`${mockStats.licensedOutfalls} 个`}
-      sub2Label="应持证率" sub2Value="98.5%"
+      sub2Label="应持证率" sub2Value={`${mockStats.licenseRequirementRate}%`}
     />
     <KPIDataCard 
       title="当日排放总量" icon={Droplets} 
@@ -359,7 +349,7 @@ const CenterTopBanner = () => (
       title="告警事件闭环" icon={AlertTriangle} 
       mainValue={mockStats.alarmResolutionRate} mainUnit="%"
       sub1Label="总数/未处置" sub1Value={`${mockStats.totalWarnings} / ${mockStats.unhandledWarnings} 件`}
-      sub2Label="处置及时率" sub2Value="95.0%"
+      sub2Label="处置及时率" sub2Value={`${mockStats.processingTimelinessRate}%`}
       isWarning={mockStats.unhandledWarnings > 0}
     />
   </motion.div>
@@ -558,25 +548,25 @@ export default function Screen() {
               </h4>
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-cyan-100 font-bold">工业排污口 (35%)</span>
-                  <span className="text-sm font-bold text-blue-400 font-mono drop-shadow-[0_0_5px_rgba(96,165,250,0.8)]">436 个</span>
+                  <span className="text-sm text-cyan-100 font-bold">工业排污口 ({mockDistribution.industrial.percent}%)</span>
+                  <span className="text-sm font-bold text-blue-400 font-mono drop-shadow-[0_0_5px_rgba(96,165,250,0.8)]">{mockDistribution.industrial.count} 个</span>
                 </div>
                 <div className="h-2 w-full bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-900/50">
-                  <motion.div initial={{ width: 0 }} animate={{ width: '35%' }} transition={{ duration: 1.5 }} className="h-full bg-blue-400" />
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${mockDistribution.industrial.percent}%` }} transition={{ duration: 1.5 }} className="h-full bg-blue-400" />
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <span className="text-sm text-cyan-100 font-bold">农业排污口 (45%)</span>
-                  <span className="text-sm font-bold text-emerald-400 font-mono drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]">560 个</span>
+                  <span className="text-sm text-cyan-100 font-bold">农业排污口 ({mockDistribution.agricultural.percent}%)</span>
+                  <span className="text-sm font-bold text-emerald-400 font-mono drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]">{mockDistribution.agricultural.count} 个</span>
                 </div>
                 <div className="h-2 w-full bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-900/50">
-                  <motion.div initial={{ width: 0 }} animate={{ width: '45%' }} transition={{ duration: 1.5, delay: 0.2 }} className="h-full bg-emerald-400" />
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${mockDistribution.agricultural.percent}%` }} transition={{ duration: 1.5, delay: 0.2 }} className="h-full bg-emerald-400" />
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <span className="text-sm text-cyan-100 font-bold">城镇生活污水等其它 (20%)</span>
-                  <span className="text-sm font-bold text-cyan-400 font-mono drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]">249 个</span>
+                  <span className="text-sm text-cyan-100 font-bold">城镇生活污水等其它 ({mockDistribution.urbanOther.percent}%)</span>
+                  <span className="text-sm font-bold text-cyan-400 font-mono drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]">{mockDistribution.urbanOther.count} 个</span>
                 </div>
                 <div className="h-2 w-full bg-cyan-950/50 rounded-full overflow-hidden border border-cyan-900/50">
-                  <motion.div initial={{ width: 0 }} animate={{ width: '20%' }} transition={{ duration: 1.5, delay: 0.4 }} className="h-full bg-cyan-400" />
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${mockDistribution.urbanOther.percent}%` }} transition={{ duration: 1.5, delay: 0.4 }} className="h-full bg-cyan-400" />
                 </div>
               </div>
             </div>
@@ -689,7 +679,7 @@ export default function Screen() {
               </h4>
               <div className="h-44 w-full text-xs">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={mockTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <AreaChart data={mockDetailedTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorCod" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
@@ -721,11 +711,7 @@ export default function Screen() {
                 <Activity className="w-6 h-6" /> 重要断面实时概况
               </h4>
               <div className="flex flex-col gap-4">
-                {[
-                  { name: '奎河断面', grade: 'Ⅲ类', status: '达标', color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/30' },
-                  { name: '房亭河断面', grade: 'Ⅳ类', status: '超标', color: 'text-red-400', bg: 'bg-red-500/20', border: 'border-red-500/30' },
-                  { name: '故黄河断面', grade: 'Ⅱ类', status: '达标', color: 'text-emerald-400', bg: 'bg-emerald-500/20', border: 'border-emerald-500/30' },
-                ].map((section, idx) => (
+                {mockSections.map((section, idx) => (
                   <div key={idx} className="flex items-center justify-between p-4 rounded bg-cyan-950/30 border border-cyan-900/30">
                     <span className="text-base text-cyan-100">{section.name}</span>
                     <div className="flex items-center gap-4">

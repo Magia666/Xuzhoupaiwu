@@ -3,6 +3,8 @@
 @theme {
   --animate-scroll: scroll 30s linear infinite;
   --animate-shimmer: shimmer 1.5s infinite;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   
   @keyframes scroll {
     0% {
@@ -17,6 +19,23 @@
     100% {
       transform: translateX(100%);
     }
+  }
+
+  @keyframes scanline {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-[#0F172A] text-slate-50;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(22, 93, 255, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(245, 63, 63, 0.03) 0px, transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.01) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 60px 60px, 60px 60px;
   }
 }
 

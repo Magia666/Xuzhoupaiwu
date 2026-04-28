@@ -91,10 +91,10 @@ export default function Dashboard() {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'I-II类', value: 45 },
-                      { name: 'III类', value: 35 },
-                      { name: 'IV类', value: 12 },
-                      { name: 'V类及以下', value: 8 },
+                      { name: 'I-II类', value: mockOutfalls.filter(o => o.waterQuality === 'I类' || o.waterQuality === 'II类').length },
+                      { name: 'III类', value: mockOutfalls.filter(o => o.waterQuality === 'III类').length },
+                      { name: 'IV类', value: mockOutfalls.filter(o => o.waterQuality === 'IV类').length },
+                      { name: 'V类及以下', value: mockOutfalls.filter(o => o.waterQuality === 'V类').length },
                     ]}
                     cx="50%"
                     cy="50%"
@@ -159,11 +159,11 @@ export default function Dashboard() {
             <div className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={[
-                  { region: '铜山街道', count: 12 },
-                  { region: '汉王镇', count: 8 },
-                  { region: '大吴街道', count: 15 },
-                  { region: '柳泉镇', count: 5 },
-                  { region: '茅村镇', count: 9 },
+                  { region: '铜山区', count: mockWarnings.filter(w => w.outfallName.includes('铜山') || (w as any).outfallId?.startsWith('EB320312')).length },
+                  { region: '汉王镇', count: mockWarnings.filter(w => w.outfallName.includes('汉王')).length },
+                  { region: '大吴街道', count: mockWarnings.filter(w => w.outfallName.includes('大吴')).length },
+                  { region: '柳泉镇', count: 0 },
+                  { region: '茅村镇', count: 0 },
                 ]} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
                   <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748B' }} />
@@ -202,9 +202,9 @@ export default function Dashboard() {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: '在线', value: 115 },
-                      { name: '离线', value: 8 },
-                      { name: '维护', value: 5 },
+                      { name: '在线', value: mockOutfalls.filter(o => o.status === 'normal' || o.status === 'warning').length },
+                      { name: '离线', value: mockOutfalls.filter(o => o.status === 'offline').length },
+                      { name: '维护', value: mockOutfalls.filter(o => o.status === 'maintenance').length },
                     ]}
                     cx="50%"
                     cy="50%"
@@ -224,7 +224,7 @@ export default function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                 <span className="text-2xl font-bold text-gray-800">128</span>
+                 <span className="text-2xl font-bold text-gray-800">{mockOutfalls.length}</span>
                  <span className="text-xs text-gray-500">总设备</span>
               </div>
             </div>

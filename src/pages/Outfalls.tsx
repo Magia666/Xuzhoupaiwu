@@ -544,7 +544,12 @@ export default function Outfalls() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [modalData, setModalData] = useState<any>(null);
 
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || JSON.stringify({
+    name: "张三 (系统管理员)",
+    role: "SystemAdmin",
+    roleName: "系统管理员",
+    username: "admin"
+  }));
   const canEditBaseInfo = currentUser.role === 'SystemAdmin' || currentUser.role === 'DataEntry';
   const canAuditBaseInfo = currentUser.role === 'SystemAdmin' || currentUser.role === 'RemediationAdmin';
 

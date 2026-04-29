@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Outfalls from "./pages/Outfalls";
@@ -12,13 +12,11 @@ import Maintenance from "./pages/Maintenance";
 import DataAnalysis from "./pages/DataAnalysis";
 import System from "./pages/System";
 import Screen from "./pages/Screen";
-import Login from "./pages/Login";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
         <Route path="/screen" element={<Screen />} />
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />

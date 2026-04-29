@@ -1,5 +1,5 @@
-import { NavLink, Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 import { 
   LayoutDashboard, 
   MapPin, 
@@ -44,35 +44,17 @@ const allNavItems = [
 
 export default function Layout() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState<any>(null);
-
-  useEffect(() => {
-    const userStr = localStorage.getItem('currentUser');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      setCurrentUser(user);
-      
-      const paths = roleFeatures[user.role] || [];
-      if (!paths.includes(location.pathname) && location.pathname !== '/') {
-        navigate('/');
-      }
-    } else if (location.pathname !== '/login') {
-      navigate('/login');
-    }
-  }, [navigate, location.pathname]);
-
-  if (!currentUser) return null;
+  const [currentUser] = useState<any>({
+    name: "张三 (系统管理员)",
+    role: "SystemAdmin",
+    roleName: "系统管理员",
+    username: "admin"
+  });
 
   const allowedPaths = roleFeatures[currentUser.role] || [];
   const navItems = allNavItems.filter(item => allowedPaths.includes(item.path));
 
   const currentNav = navItems.find(item => item.path === location.pathname) || navItems[0];
-
-  const handleLogout = () => {
-    localStorage.removeItem('currentUser');
-    navigate('/login');
-  };
 
   return (
     <div className="flex h-screen w-full bg-[#F0F2F5] font-sans text-[#333333]">
@@ -120,9 +102,6 @@ export default function Layout() {
               <p className="text-sm font-medium truncate">{currentUser.roleName}</p>
               <p className="text-xs text-white/60 truncate">{currentUser.name.split(' ')[0]}</p>
             </div>
-            <button onClick={handleLogout} className="text-white/60 group-hover:text-white transition-colors" title="退出登录">
-              <LogOut className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </aside>

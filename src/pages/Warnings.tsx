@@ -31,6 +31,9 @@ export default function Warnings() {
 
   return (
     <div className="h-full flex flex-col gap-6 relative">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold text-gray-900">事件中心</h2>
+      </div>
       {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
         <div className="flex flex-wrap items-center gap-3">

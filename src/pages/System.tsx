@@ -10,6 +10,45 @@ const mockUsers = [
   { id: 5, name: "孙七", department: "环保局", role: "领导", phone: "13500135000", status: "active" },
 ];
 
+const mockRoles = [
+  { 
+    id: 1, 
+    name: "系统管理员", 
+    desc: "负责系统整体运维、用户管理、权限分配、参数配置、数据安全管理，保障系统稳定运行",
+    auth: "系统全功能管理权限，包括用户增删改查、角色权限配置、系统参数设置、数据备份与恢复、日志审计、所有业务数据的查看权限" 
+  },
+  { 
+    id: 2, 
+    name: "数据录入员", 
+    desc: "负责排口基础信息、排查记录、溯源信息、标识牌信息等业务数据的录入、更新，确保数据准确性与完整性",
+    auth: "排口信息录入/修改、排查记录录入、溯源信息上传、标识牌信息管理、本人录入数据的查询与导出权限；无数据删除、审核权限" 
+  },
+  { 
+    id: 3, 
+    name: "监测分析员", 
+    desc: "负责监测数据的分析、超标数据核查、监测报告编制、溯源分析，识别水质异常原因",
+    auth: "监测数据实时查看、历史数据查询、数据分析、超标预警查看、监测报告生成/导出、溯源信息审核权限；无排口基础信息修改权限" 
+  },
+  { 
+    id: 4, 
+    name: "整治管理员", 
+    desc: "负责制定排口“一口一策”整治方案，跟踪整治进度，组织验收销号，督办整治工作",
+    auth: "排口信息审核、“一口一策”方案制定/修改、整治进度更新、验收销号管理、预警处置、督办备注添加、整治数据统计分析权限" 
+  },
+  { 
+    id: 5, 
+    name: "河长/监管人员", 
+    desc: "负责分管区域排口的现场核查、整治进度督办、水质情况监管，落实河长制工作要求",
+    auth: "分管区域排口信息查询、监测数据查看、整治进度跟踪、现场核查记录录入、预警信息查看、移动端扫码查询权限；无核心数据修改权限" 
+  },
+  { 
+    id: 6, 
+    name: "运维人员", 
+    desc: "负责监测设备、标识牌、系统平台的日常运维，记录运维情况，保障设备与系统正常运行",
+    auth: "设备档案管理、运维计划制定、运维工单处理、耗材管理、运维记录录入、设备状态查看、故障上报权限；无业务数据审核、修改权限" 
+  },
+];
+
 export default function System() {
   const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
@@ -141,8 +180,40 @@ export default function System() {
         )}
 
         {activeTab === "roles" && (
-          <div className="p-6 flex items-center justify-center text-gray-500 h-full">
-            角色权限管理模块开发中...
+          <div className="flex-1 overflow-y-auto p-4 bg-gray-50/50">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-gray-900">角色权限配置</h3>
+              <button className="flex items-center gap-2 bg-[#0056B3] hover:bg-[#004494] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <Plus className="w-4 h-4" />
+                新增角色
+              </button>
+            </div>
+            <div className="space-y-4">
+              {mockRoles.map((role) => (
+                <div key={role.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                      <Shield className="w-5 h-5 text-[#0056B3]" />
+                      {role.name}
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleAction("配置权限", role)} className="text-sm text-[#0056B3] hover:underline font-medium">配置权限</button>
+                      <button onClick={() => handleAction("编辑角色", role)} className="text-sm text-gray-500 hover:text-[#0056B3]">编辑</button>
+                    </div>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <p className="flex items-start gap-2 text-gray-600">
+                      <span className="font-medium text-gray-700 whitespace-nowrap mt-0.5">核心职责:</span>
+                      <span>{role.desc}</span>
+                    </p>
+                    <p className="flex items-start gap-2 text-gray-600">
+                      <span className="font-medium text-gray-700 whitespace-nowrap mt-0.5">操作权限:</span>
+                      <span>{role.auth}</span>
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

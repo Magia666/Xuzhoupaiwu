@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Plus, Search, Eye, Edit, QrCode, MapPin, Download, FileText, Activity, MessageSquare, CheckSquare, X } from "lucide-react";
-import { mockOutfalls, mockInspections, mockTraceability, mockRemediations, mockSignboards } from "../lib/mockData";
+import { mockOutfalls, mockInspections, mockTraceability, mockRemediations, mockSignboards, mockMonitoringData, mockWarnings, mockMaintenanceTasks } from "../lib/mockData";
 import { cn } from "../lib/utils";
 
 // Simple Toast component
@@ -378,7 +378,162 @@ function SignboardsList({ outfallId, onOpenModal }: { outfallId: string, onOpenM
   );
 }
 
-type ModalType = 'addOutfall' | 'editOutfall' | 'viewPanorama' | 'previewAttachment' | 'addInspection' | 'viewInspection' | 'addTraceability' | 'viewTraceability' | 'addRemediation' | 'viewRemediation' | 'updateRemediation' | 'addSupervision' | 'applyAcceptance' | 'addSignboard' | 'viewSignboard' | 'viewQRCode' | 'downloadAttachment' | null;
+function MonitoringList({ outfallId }: { outfallId: string, onOpenModal: (type: string, data?: any) => void }) {
+  const data = mockMonitoringData.filter(i => i.id === outfallId);
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-bold text-gray-900">在线监测实时数据</h3>
+      </div>
+      {data.length > 0 ? (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
+              <tr>
+                <th className="py-3 px-4 font-medium">更新时间</th>
+                <th className="py-3 px-4 font-medium">监测状态</th>
+                <th className="py-3 px-4 font-medium">COD (mg/L)</th>
+                <th className="py-3 px-4 font-medium">氨氮 (mg/L)</th>
+                <th className="py-3 px-4 font-medium">总磷 (mg/L)</th>
+                <th className="py-3 px-4 font-medium">总氮 (mg/L)</th>
+                <th className="py-3 px-4 font-medium">pH</th>
+                <th className="py-3 px-4 font-medium">流量 (m³/h)</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map((item, idx) => (
+                <tr key={idx} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 text-gray-600">{item.lastUpdate}</td>
+                  <td className="py-3 px-4">
+                    <span className={cn("px-2 py-1 rounded-md text-xs", item.status === '正常' ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700")}>
+                      {item.status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600">{item.cod ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.nh3n ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.tp ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.tn ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.ph ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.flow ?? '-'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-lg bg-gray-50">暂无在线监测数据</div>
+      )}
+    </div>
+  );
+}
+
+function WarningsList({ outfallId }: { outfallId: string, onOpenModal: (type: string, data?: any) => void }) {
+  const data = mockWarnings.filter(i => i.outfallId === outfallId);
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-bold text-gray-900">事件中心记录 ({data.length})</h3>
+      </div>
+      {data.length > 0 ? (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
+              <tr>
+                <th className="py-3 px-4 font-medium">预警单号</th>
+                <th className="py-3 px-4 font-medium">跑冒滴漏情况</th>
+                <th className="py-3 px-4 font-medium">预警类型</th>
+                <th className="py-3 px-4 font-medium">预警级别</th>
+                <th className="py-3 px-4 font-medium">预警时间</th>
+                <th className="py-3 px-4 font-medium">处理状态</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 font-mono text-gray-600">{item.id}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.desc}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.type}</td>
+                  <td className="py-3 px-4">
+                    <span className={cn("px-2 py-1 rounded-md text-xs", 
+                      item.level === 1 ? "bg-red-50 text-red-700 border border-red-200" :
+                      item.level === 2 ? "bg-orange-50 text-orange-700 border border-orange-200" :
+                      "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                    )}>
+                      {item.level}级预警
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600">{item.time}</td>
+                  <td className="py-3 px-4">
+                    <span className={cn("px-2 py-1 rounded-md text-xs", 
+                      item.status === '待处理' ? "bg-red-50 text-red-700" :
+                      item.status === '处理中' ? "bg-blue-50 text-blue-700" :
+                      "bg-green-50 text-green-700"
+                    )}>
+                      {item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-lg bg-gray-50">暂无事件中心记录</div>
+      )}
+    </div>
+  );
+}
+
+function MaintenanceList({ outfallName }: { outfallName: string, onOpenModal: (type: string, data?: any) => void }) {
+  const data = mockMaintenanceTasks.filter(i => i.outfallName === outfallName);
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-bold text-gray-900">运维工单记录 ({data.length})</h3>
+      </div>
+      {data.length > 0 ? (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
+              <tr>
+                <th className="py-3 px-4 font-medium">工单编号</th>
+                <th className="py-3 px-4 font-medium">工单类型</th>
+                <th className="py-3 px-4 font-medium">设备类型</th>
+                <th className="py-3 px-4 font-medium">下发时间</th>
+                <th className="py-3 px-4 font-medium">负责人</th>
+                <th className="py-3 px-4 font-medium">工单状态</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 font-mono text-gray-600">{item.id}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.type}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.device}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.time}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.assignee}</td>
+                  <td className="py-3 px-4">
+                    <span className={cn("px-2 py-1 rounded-md text-xs", 
+                      item.status === '待处理' ? "bg-red-50 text-red-700" :
+                      item.status === '处理中' ? "bg-blue-50 text-blue-700" :
+                      "bg-green-50 text-green-700"
+                    )}>
+                      {item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-lg bg-gray-50">暂无运维工单记录</div>
+      )}
+    </div>
+  );
+}
+
+type ModalType = 'addOutfall' | 'editOutfall' | 'rejectOutfall' | 'cancelOutfall' | 'viewPanorama' | 'previewAttachment' | 'addInspection' | 'viewInspection' | 'addTraceability' | 'viewTraceability' | 'addRemediation' | 'viewRemediation' | 'updateRemediation' | 'addSupervision' | 'applyAcceptance' | 'addSignboard' | 'viewSignboard' | 'viewQRCode' | 'downloadAttachment' | null;
 
 export default function Outfalls() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -388,6 +543,10 @@ export default function Outfalls() {
 
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [modalData, setModalData] = useState<any>(null);
+
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const canEditBaseInfo = currentUser.role === 'SystemAdmin' || currentUser.role === 'DataEntry';
+  const canAuditBaseInfo = currentUser.role === 'SystemAdmin' || currentUser.role === 'RemediationAdmin';
 
   const handleAction = (msg: string) => {
     setToastMessage(msg);
@@ -424,14 +583,108 @@ export default function Outfalls() {
       case 'addOutfall':
       case 'editOutfall':
         return (
-          <Modal title={activeModal === 'addOutfall' ? "新增排污口" : "编辑排污口信息"} onClose={handleCloseModal} onConfirm={handleConfirmModal} size="lg">
-            <div className="grid grid-cols-2 gap-4">
-              <div><label className="block text-sm text-gray-700 mb-1">排口名称</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.name} /></div>
-              <div><label className="block text-sm text-gray-700 mb-1">唯一编码</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.id} /></div>
-              <div><label className="block text-sm text-gray-700 mb-1">排口类型</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.type} /></div>
-              <div><label className="block text-sm text-gray-700 mb-1">经度</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.lng} /></div>
-              <div><label className="block text-sm text-gray-700 mb-1">纬度</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.lat} /></div>
-              <div className="col-span-2"><label className="block text-sm text-gray-700 mb-1">详细地址</label><input type="text" className="w-full border rounded p-2 text-sm" defaultValue={modalData?.address} /></div>
+          <Modal title={activeModal === 'addOutfall' ? "新增排污口" : "编辑排污口信息"} onClose={handleCloseModal} onConfirm={handleConfirmModal} size="xl">
+            <div className="max-h-[65vh] overflow-y-auto pr-4 space-y-6">
+              {/* 基础属性 */}
+              <section>
+                <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-[#0056B3] rounded-full" /> 基础属性
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">排口名称 <span className="text-red-500">*</span></label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.name} placeholder="请输入" /></div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">唯一编码 <span className="text-red-500">*</span></label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.id} placeholder="自动生成或输入" /></div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">排入水体名称</label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.river || ''} placeholder="请输入" /></div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">排口类型</label>
+                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.type}>
+                      <option value="">请选择</option>
+                      <option value="工业排污口">工业排污口</option>
+                      <option value="城镇污水处理厂排污口">城镇污水处理厂排污口</option>
+                      <option value="农业排污口">农业排污口</option>
+                      <option value="其他排污口">其他排污口</option>
+                    </select>
+                  </div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">流域名称</label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" placeholder="请输入" /></div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">入河类型</label>
+                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]">
+                      <option value="">请选择</option>
+                      <option value="明渠">明渠</option>
+                      <option value="暗管">暗管</option>
+                    </select>
+                  </div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">入流方式</label>
+                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]">
+                      <option value="">请选择</option>
+                      <option value="连续">连续</option>
+                      <option value="间歇">间歇</option>
+                    </select>
+                  </div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">口门类型</label>
+                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]">
+                      <option value="">请选择</option>
+                      <option value="涵闸">涵闸</option>
+                      <option value="泵站">泵站</option>
+                      <option value="其他">其他</option>
+                    </select>
+                  </div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">受纳水体</label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" placeholder="请输入" /></div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">排水特征</label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" placeholder="请输入" /></div>
+                </div>
+              </section>
+
+              {/* 位置信息 */}
+              <section>
+                <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-[#0056B3] rounded-full" /> 位置信息
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">所属区域</label>
+                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.region}>
+                      <option value="">请选择</option>
+                      <option value="大吴街道">大吴街道</option>
+                      <option value="潘安湖街道">潘安湖街道</option>
+                    </select>
+                  </div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">所属网格</label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" placeholder="请输入" /></div>
+                  <div className="lg:col-span-3">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">详细地址</label>
+                    <input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.address} placeholder="请输入详细地址" />
+                  </div>
+                  <div className="lg:col-span-3">
+                    <label className="block text-xs font-medium text-gray-700 mb-1">经纬度 (选择地图或手动输入)</label>
+                    <div className="flex gap-2">
+                      <input type="text" className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.lng ? `${modalData.lng}, ${modalData.lat}` : ''} placeholder="经度, 纬度" />
+                      <button type="button" className="bg-gray-100 border border-gray-300 text-gray-700 px-4 py-2 rounded text-sm hover:bg-gray-200 transition-colors flex items-center gap-2">
+                        <MapPin className="w-4 h-4" /> 地图选点
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* 责任信息 */}
+              <section>
+                <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-[#0056B3] rounded-full" /> 责任信息
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">责任主体</label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.owner} placeholder="请输入" /></div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">行业主管部门</label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.industryDept} placeholder="请输入" /></div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">责任人</label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.manager} placeholder="请输入" /></div>
+                  <div><label className="block text-xs font-medium text-gray-700 mb-1">联系方式</label><input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0056B3] focus:ring-1 focus:ring-[#0056B3]" defaultValue={modalData?.phone} placeholder="请输入" /></div>
+                </div>
+              </section>
+
+              {/* 附件信息 */}
+              <section>
+                <h3 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <div className="w-1 h-4 bg-[#0056B3] rounded-full" /> 附件信息
+                </h3>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                  <Plus className="w-8 h-8 mb-2 text-gray-400" />
+                  <p className="text-sm font-medium">点击或拖拽上传附件</p>
+                  <p className="text-xs text-gray-400 mt-1">支持上传排口现场照片、位置图、审批文件等</p>
+                </div>
+              </section>
             </div>
           </Modal>
         );
@@ -578,6 +831,45 @@ export default function Outfalls() {
               </div>
               <p className="text-sm font-medium text-gray-900">{modalData?.name}</p>
               <p className="text-xs text-gray-500 mt-1 font-mono">{modalData?.id}</p>
+              <div className="flex gap-2 mt-6">
+                <button className="px-4 py-2 bg-[#0056B3] text-white rounded-lg hover:bg-[#004494] text-sm font-medium transition-colors flex items-center gap-2">
+                  <Download className="w-4 h-4" /> 导出二维码
+                </button>
+                <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors flex items-center gap-2">
+                  打印
+                </button>
+              </div>
+            </div>
+          </Modal>
+        );
+      case 'rejectOutfall':
+        return (
+          <Modal title="填写驳回原因" onClose={handleCloseModal} onConfirm={() => handleAction("已驳回排污口信息审核")} confirmText="确认驳回">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">驳回原因 <span className="text-red-500">*</span></label>
+                <textarea className="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" rows={4} placeholder="请输入驳回排污口信息审核的具体原因..."></textarea>
+              </div>
+            </div>
+          </Modal>
+        );
+      case 'cancelOutfall':
+        return (
+          <Modal title="注销排污口" onClose={handleCloseModal} onConfirm={() => handleAction("排污口注销成功")} confirmText="确认注销">
+            <div className="space-y-4">
+              <div className="p-3 bg-red-50 border border-red-100 rounded-md text-sm text-red-800">
+                注意：注销后排口状态将标记为“已注销”，历史数据保留不可删除，台账中单独归档。该操作不可撤销。
+              </div>
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">注销原因 <span className="text-red-500">*</span></label>
+                <select className="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 mb-3">
+                  <option value="">请选择</option>
+                  <option value="封堵">排口已封堵</option>
+                  <option value="取缔">排口已取缔</option>
+                  <option value="其他">其他原因</option>
+                </select>
+                <textarea className="w-full border border-gray-300 rounded p-2 text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500" rows={3} placeholder="请输入详细注销说明..."></textarea>
+              </div>
             </div>
           </Modal>
         );
@@ -593,13 +885,15 @@ export default function Outfalls() {
         <div className="p-4 border-b border-gray-100 flex flex-col gap-3">
           <div className="flex justify-between items-center">
             <h3 className="font-bold text-gray-900">排污口列表</h3>
-            <button 
-              onClick={() => handleOpenModal("addOutfall")}
-              className="text-[#0056B3] hover:bg-blue-50 p-1.5 rounded-md transition-colors" 
-              title="新增排污口"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+            {canEditBaseInfo && (
+              <button 
+                onClick={() => handleOpenModal("addOutfall")}
+                className="text-[#0056B3] hover:bg-blue-50 p-1.5 rounded-md transition-colors" 
+                title="新增排污口"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            )}
           </div>
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -627,14 +921,26 @@ export default function Outfalls() {
               <div className="font-medium text-gray-900 truncate">{outfall.name}</div>
               <div className="flex justify-between items-center mt-1">
                 <span className="text-xs text-gray-500 font-mono">{outfall.id}</span>
-                <span className={cn("text-[10px] px-1.5 py-0.5 rounded border", 
-                  outfall.status === 'normal' ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
-                  outfall.status === 'warning' ? "bg-red-50 text-red-600 border-red-200" :
-                  outfall.status === 'offline' ? "bg-slate-50 text-slate-600 border-slate-200" :
-                  "bg-yellow-50 text-yellow-600 border-yellow-200"
-                )}>
-                  {outfall.status === 'normal' ? '正常' : outfall.status === 'warning' ? '异常' : outfall.status === 'offline' ? '离线' : '维护'}
-                </span>
+                <div className="flex gap-1">
+                  <span className={cn("text-[10px] px-1.5 py-0.5 rounded border", 
+                    outfall.cancelStatus === 'cancelled' ? "bg-gray-100 text-gray-700 border-gray-300" :
+                    outfall.auditStatus === 'approved' ? "bg-green-50 text-green-700 border-green-200" : 
+                    outfall.auditStatus === 'pending' ? "bg-blue-50 text-blue-700 border-blue-200" :
+                    "bg-red-50 text-red-700 border-red-200"
+                  )}>
+                    {outfall.cancelStatus === 'cancelled' ? '已注销' :
+                     outfall.auditStatus === 'approved' ? '已建档' :
+                     outfall.auditStatus === 'pending' ? '待审核' : '已驳回'}
+                  </span>
+                  <span className={cn("text-[10px] px-1.5 py-0.5 rounded border", 
+                    outfall.status === 'normal' ? "bg-emerald-50 text-emerald-600 border-emerald-200" :
+                    outfall.status === 'warning' ? "bg-red-50 text-red-600 border-red-200" :
+                    outfall.status === 'offline' ? "bg-slate-50 text-slate-600 border-slate-200" :
+                    "bg-yellow-50 text-yellow-600 border-yellow-200"
+                  )}>
+                    {outfall.status === 'normal' ? '可用' : outfall.status === 'warning' ? '异常' : outfall.status === 'offline' ? '离线' : '维护'}
+                  </span>
+                </div>
               </div>
             </button>
           ))}
@@ -653,12 +959,14 @@ export default function Outfalls() {
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
                     {selectedOutfall.name}
-                    <span className={cn("text-xs px-2 py-0.5 rounded-full border font-normal", 
+                    <span className={cn("text-xs px-2 py-0.5 rounded-full border font-normal whitespace-nowrap", 
+                      selectedOutfall.cancelStatus === 'cancelled' ? "bg-gray-100 text-gray-700 border-gray-300" :
                       selectedOutfall.auditStatus === 'approved' ? "bg-green-50 text-green-700 border-green-200" :
                       selectedOutfall.auditStatus === 'pending' ? "bg-blue-50 text-blue-700 border-blue-200" :
                       "bg-red-50 text-red-700 border-red-200"
                     )}>
-                      {selectedOutfall.auditStatus === 'approved' ? '已建档' :
+                      {selectedOutfall.cancelStatus === 'cancelled' ? '已注销' :
+                       selectedOutfall.auditStatus === 'approved' ? '已建档' :
                        selectedOutfall.auditStatus === 'pending' ? '待审核' : '已驳回'}
                     </span>
                   </h2>
@@ -668,19 +976,49 @@ export default function Outfalls() {
                     <span className="flex items-center gap-1"><Activity className="w-3 h-3"/> {selectedOutfall.type}</span>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => handleOpenModal("viewQRCode", selectedOutfall)}
-                    className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-1"
-                  >
-                    <QrCode className="w-4 h-4" /> 二维码
-                  </button>
-                  <button 
-                    onClick={() => handleOpenModal("editOutfall", selectedOutfall)}
-                    className="px-3 py-1.5 text-sm font-medium text-white bg-[#0056B3] hover:bg-[#004494] rounded-lg flex items-center gap-1"
-                  >
-                    <Edit className="w-4 h-4" /> 编辑信息
-                  </button>
+                <div className="flex gap-2 flex-wrap justify-end">
+                  {selectedOutfall.auditStatus === 'approved' && selectedOutfall.cancelStatus !== 'cancelled' && (
+                    <button 
+                      onClick={() => handleOpenModal("viewQRCode", selectedOutfall)}
+                      className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-1"
+                    >
+                      <QrCode className="w-4 h-4" /> 二维码
+                    </button>
+                  )}
+                  {canAuditBaseInfo && selectedOutfall.auditStatus === 'pending' && selectedOutfall.cancelStatus !== 'cancelled' && (
+                    <>
+                      <button 
+                        onClick={() => handleAction("审核通过成功")}
+                        className="px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg flex items-center gap-1"
+                      >
+                        审核通过
+                      </button>
+                      <button 
+                        onClick={() => handleOpenModal("rejectOutfall", selectedOutfall)}
+                        className="px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 border border-red-200 rounded-lg flex items-center gap-1"
+                      >
+                        审核驳回
+                      </button>
+                    </>
+                  )}
+                  {canEditBaseInfo && selectedOutfall.cancelStatus !== 'cancelled' && (
+                    <button 
+                      onClick={() => handleOpenModal("editOutfall", selectedOutfall)}
+                      className={cn("px-3 py-1.5 text-sm font-medium rounded-lg flex items-center gap-1", 
+                        selectedOutfall.auditStatus === 'approved' ? "text-gray-700 bg-white hover:bg-gray-50 border border-gray-200" : "text-white bg-[#0056B3] hover:bg-[#004494]"
+                      )}
+                    >
+                      <Edit className="w-4 h-4" /> {selectedOutfall.auditStatus === 'approved' ? '申请修改' : '编辑信息'}
+                    </button>
+                  )}
+                  {canEditBaseInfo && selectedOutfall.auditStatus === 'approved' && selectedOutfall.cancelStatus !== 'cancelled' && (
+                    <button 
+                      onClick={() => handleOpenModal("cancelOutfall", selectedOutfall)}
+                      className="px-3 py-1.5 text-sm font-medium text-red-600 bg-white hover:bg-red-50 border border-red-200 rounded-lg flex items-center gap-1"
+                    >
+                      注销排口
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -691,6 +1029,9 @@ export default function Outfalls() {
                   { id: 'traceability', label: '溯源信息' },
                   { id: 'remediations', label: '整治管理' },
                   { id: 'signboards', label: '标识牌管理' },
+                  { id: 'monitoring', label: '在线监测' },
+                  { id: 'warnings', label: '事件中心' },
+                  { id: 'maintenance', label: '运维管理' },
                 ].map(tab => (
                   <button
                     key={tab.id}
@@ -715,6 +1056,9 @@ export default function Outfalls() {
               {activeTab === 'traceability' && <TraceabilityList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
               {activeTab === 'remediations' && <RemediationsList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
               {activeTab === 'signboards' && <SignboardsList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
+              {activeTab === 'monitoring' && <MonitoringList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
+              {activeTab === 'warnings' && <WarningsList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
+              {activeTab === 'maintenance' && <MaintenanceList outfallName={selectedOutfall.name} onOpenModal={handleOpenModal} />}
             </div>
           </>
         ) : (

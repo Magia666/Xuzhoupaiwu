@@ -58,7 +58,11 @@ export const mockOutfalls = [
     basin: "淮河流域", entryType: "明渠", flowType: "连续", gateType: "闸门", receivingWater: "不牢河", drainageChar: "工业废水", region: "铜山区", address: "工业园5号", grid: "网格E5", responsibleEntity: "某某制造厂", industryDept: "工信局", attachments: [], auditStatus: "rejected", cancelStatus: "active", qrCode: ""
   },
   { 
-    id: "EB320312006", name: "大沙河排污口", type: "农业排口", status: "normal", lat: 34.195, lng: 117.135, waterQuality: "III类", river: "大沙河", manager: "周八", phone: "13400134000", updateTime: "2026-03-18 07:30",
+    id: "EB320312006", name: "茅村镇废弃排口", type: "其他排口", status: "offline", lat: 34.312, lng: 117.189, waterQuality: "-", river: "彭祖河", manager: "钱八", phone: "13400134000", updateTime: "2026-02-15 09:00",
+    basin: "淮河流域", entryType: "暗管", flowType: "间歇", gateType: "无", receivingWater: "彭祖河", drainageChar: "未知", region: "铜山区", address: "茅村镇", grid: "网格F6", responsibleEntity: "未知", industryDept: "环保局", attachments: [], auditStatus: "approved", cancelStatus: "cancelled", qrCode: ""
+  },
+  { 
+    id: "EB320312007", name: "大沙河排污口", type: "农业排口", status: "normal", lat: 34.195, lng: 117.135, waterQuality: "III类", river: "大沙河", manager: "周八", phone: "13400134000", updateTime: "2026-03-18 07:30",
     basin: "淮河流域", entryType: "明渠", flowType: "间歇", gateType: "泵站", receivingWater: "大沙河", drainageChar: "农田退水", region: "铜山区", address: "大沙河镇6号", grid: "网格F6", responsibleEntity: "大沙河镇政府", industryDept: "农业农村局", attachments: [], auditStatus: "approved", cancelStatus: "cancelled", qrCode: "qr-006"
   },
   { 

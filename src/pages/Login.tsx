@@ -2,14 +2,26 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, Mail, Lock, User, ArrowRight } from "lucide-react";
 
+const loginUsers = [
+  { name: "张三 (系统管理员)", role: "SystemAdmin", roleName: "系统管理员", username: "admin" },
+  { name: "李四 (数据录入员)", role: "DataEntry", roleName: "数据录入员", username: "entry" },
+  { name: "王五 (监测分析员)", role: "MonitoringAnalyst", roleName: "监测分析员", username: "analyst" },
+  { name: "赵六 (整治管理员)", role: "RemediationAdmin", roleName: "整治管理员", username: "remediation" },
+  { name: "孙七 (河长/监管人员)", role: "Supervisor", roleName: "河长/监管人员", username: "supervisor" },
+  { name: "周八 (运维人员)", role: "Maintenance", roleName: "运维人员", username: "maintenance" },
+];
+
 export default function Login() {
-  const [isLogin, setIsLogin] = useState(true);
+  const [selectedUser, setSelectedUser] = useState(loginUsers[0].username);
   const navigate = useNavigate();
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    // No actual validation needed, just navigate to the dashboard
-    navigate("/");
+    const user = loginUsers.find(u => u.username === selectedUser);
+    if (user) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      navigate("/");
+    }
   };
 
   return (
@@ -30,126 +42,47 @@ export default function Login() {
           铜山区排污口监管平台
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          {isLogin ? "欢迎回来，请登录您的账号" : "注册新账号以访问系统"}
+          欢迎体验，请选择演示角色登录
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-xl shadow-gray-200/50 sm:rounded-2xl sm:px-10 border border-gray-100">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {!isLogin && (
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                  姓名
-                </label>
-                <div className="mt-1 relative rounded-md shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    className="focus:ring-[#0056B3] focus:border-[#0056B3] block w-full pl-10 sm:text-sm border-gray-300 rounded-lg py-2.5 border"
-                    placeholder="请输入您的姓名"
-                  />
-                </div>
-              </div>
-            )}
-
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                邮箱 / 手机号
+              <label htmlFor="user" className="block text-sm font-medium text-gray-700">
+                选择演示角色
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <User className="h-5 w-5 text-gray-400" />
                 </div>
-                <input
-                  id="email"
-                  name="email"
-                  type="text"
-                  required
-                  className="focus:ring-[#0056B3] focus:border-[#0056B3] block w-full pl-10 sm:text-sm border-gray-300 rounded-lg py-2.5 border"
-                  placeholder="admin@example.com"
-                />
+                <select
+                  id="user"
+                  name="user"
+                  value={selectedUser}
+                  onChange={(e) => setSelectedUser(e.target.value)}
+                  className="focus:ring-[#0056B3] focus:border-[#0056B3] block w-full pl-10 sm:text-sm border-gray-300 rounded-lg py-2.5 border bg-white"
+                >
+                  {loginUsers.map(u => (
+                    <option key={u.username} value={u.username}>
+                      {u.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                密码
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  className="focus:ring-[#0056B3] focus:border-[#0056B3] block w-full pl-10 sm:text-sm border-gray-300 rounded-lg py-2.5 border"
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
-            {isLogin && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    name="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-[#0056B3] focus:ring-[#0056B3] border-gray-300 rounded"
-                  />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                    记住我
-                  </label>
-                </div>
-
-                <div className="text-sm">
-                  <a href="#" className="font-medium text-[#0056B3] hover:text-[#004494]">
-                    忘记密码？
-                  </a>
-                </div>
-              </div>
-            )}
 
             <div>
               <button
                 type="submit"
                 className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#0056B3] hover:bg-[#004494] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0056B3] transition-colors"
               >
-                {isLogin ? "登录" : "注册"}
+                登录体验系统
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">
-                  {isLogin ? "还没有账号？" : "已有账号？"}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="w-full flex justify-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0056B3] transition-colors"
-              >
-                {isLogin ? "注册新账号" : "返回登录"}
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   Activity, 
   AlertTriangle, 
@@ -64,16 +65,17 @@ const icons = {
 export default function Dashboard() {
   const [selectedOutfall, setSelectedOutfall] = useState<string | null>(null);
   const defaultCenter: [number, number] = [34.2648, 117.1838]; // Xuzhou center
+  const navigate = useNavigate();
 
   return (
     <div className="h-full flex flex-col gap-6">
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <StatCard title="排口总数" value={mockStats.totalOutfalls} unit="个" icon={MapPin} colorType="blue" />
-        <StatCard title="在线监测点位" value={mockStats.onlineMonitoring} unit="个" icon={Video} colorType="emerald" />
-        <StatCard title="水质达标率" value={`${mockStats.waterQualityCompliance}%`} icon={CheckCircle} colorType="indigo" />
-        <StatCard title="预警总数" value={mockStats.totalWarnings} unit="条" icon={AlertTriangle} colorType="amber" />
-        <StatCard title="未处置预警" value={mockStats.unhandledWarnings} unit="条" icon={AlertTriangle} colorType="rose" />
+        <StatCard title="排口总数" value={mockStats.totalOutfalls} unit="个" icon={MapPin} colorType="blue" path="/outfalls" onClick={(path) => navigate(path)} />
+        <StatCard title="在线监测点位" value={mockStats.onlineMonitoring} unit="个" icon={Video} colorType="emerald" path="/monitoring" onClick={(path) => navigate(path)} />
+        <StatCard title="水质达标率" value={`${mockStats.waterQualityCompliance}%`} icon={CheckCircle} colorType="indigo" path="/analysis" onClick={(path) => navigate(path)} />
+        <StatCard title="预警总数" value={mockStats.totalWarnings} unit="条" icon={AlertTriangle} colorType="amber" path="/warnings" onClick={(path) => navigate(path)} />
+        <StatCard title="未处置预警" value={mockStats.unhandledWarnings} unit="条" icon={AlertTriangle} colorType="rose" path="/warnings" onClick={(path) => navigate(path)} />
       </div>
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-5 gap-6 min-h-0">
@@ -82,10 +84,13 @@ export default function Dashboard() {
         <div className="grid grid-rows-2 gap-6 min-h-0 h-full">
           {/* Module 3: Water Quality Distribution */}
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-slate-100 p-5 flex-1 flex flex-col min-h-0">
-            <h3 className="font-semibold text-slate-800 tracking-tight mb-4 flex items-center gap-2">
-              <Droplets className="w-4 h-4 text-blue-500" />
-              全区水质类别分布
-            </h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold text-slate-800 tracking-tight flex items-center gap-2">
+                <Droplets className="w-4 h-4 text-blue-500" />
+                全区水质类别分布
+              </h3>
+              <button onClick={() => navigate('/analysis')} className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">查看详情</button>
+            </div>
             <div className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -121,10 +126,13 @@ export default function Dashboard() {
 
           {/* Module 4: Pollutant Index Radar */}
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-slate-100 p-5 flex-1 flex flex-col min-h-0">
-            <h3 className="font-semibold text-slate-800 tracking-tight mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-indigo-500" />
-              综合排放污染指数
-            </h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold text-slate-800 tracking-tight flex items-center gap-2">
+                <Activity className="w-4 h-4 text-indigo-500" />
+                综合排放污染指数
+              </h3>
+              <button onClick={() => navigate('/analysis')} className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">查看详情</button>
+            </div>
             <div className="flex-1 min-h-0 pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="65%" data={[
@@ -152,10 +160,13 @@ export default function Dashboard() {
         <div className="grid grid-rows-2 gap-6 min-h-0 h-full">
           {/* Module 1: Warnings by Region */}
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-slate-100 p-5 flex-1 flex flex-col min-h-0">
-            <h3 className="font-semibold text-slate-800 tracking-tight mb-4 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-500" />
-              各镇街预警统计
-            </h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold text-slate-800 tracking-tight flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                各镇街预警统计
+              </h3>
+              <button onClick={() => navigate('/warnings')} className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">查看详情</button>
+            </div>
             <div className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={[
@@ -241,7 +252,10 @@ export default function Dashboard() {
           {/* Map Area */}
           <div className="flex-1 bg-white rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-slate-100 overflow-hidden relative flex flex-col z-0 min-h-0">
             <div className="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-white z-10 relative">
-              <h3 className="font-semibold text-slate-800 tracking-tight">全区排污口分布图</h3>
+              <h3 className="font-semibold text-slate-800 tracking-tight flex items-center gap-4">
+                全区排污口分布图
+                <button onClick={() => navigate('/outfalls')} className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">管理排口</button>
+              </h3>
               <div className="flex gap-2">
                 <div className="relative">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -303,7 +317,7 @@ export default function Dashboard() {
                 <Wrench className="w-4 h-4 text-amber-500" />
                 最新运维动态
               </h3>
-              <button className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">查看全部</button>
+              <button onClick={() => navigate('/maintenance')} className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">查看全部</button>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto pr-2 space-y-3">
               {mockMaintenanceTasks.slice(0, 5).map((task) => (
@@ -343,10 +357,13 @@ export default function Dashboard() {
         <div className="grid grid-rows-2 gap-6 min-h-0 h-full">
           {/* Trend Chart */}
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-slate-100 p-5 flex-1 flex flex-col min-h-0">
-            <h3 className="font-semibold text-slate-800 tracking-tight mb-4 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-blue-500" />
-              全区水质变化趋势 (近7日)
-            </h3>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold text-slate-800 tracking-tight flex items-center gap-2">
+                <Activity className="w-4 h-4 text-blue-500" />
+                全区水质变化趋势 (近7日)
+              </h3>
+              <button onClick={() => navigate('/analysis')} className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">查看详情</button>
+            </div>
             <div className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={mockTrendData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
@@ -374,7 +391,7 @@ export default function Dashboard() {
                 <AlertTriangle className="w-4 h-4 text-rose-500" />
                 最新预警信息
               </h3>
-              <button className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">查看全部</button>
+              <button onClick={() => navigate('/warnings')} className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">查看全部</button>
             </div>
             <div className="flex-1 min-h-0 overflow-y-auto pr-2 space-y-3">
               {mockWarnings.map((warning) => (
@@ -415,7 +432,7 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ title, value, unit, icon: Icon, colorType }: { title: string, value: string | number, unit?: string, icon: any, colorType: 'blue' | 'emerald' | 'amber' | 'rose' | 'indigo' }) {
+function StatCard({ title, value, unit, icon: Icon, colorType, path, onClick }: { title: string, value: string | number, unit?: string, icon: any, colorType: 'blue' | 'emerald' | 'amber' | 'rose' | 'indigo', path?: string, onClick?: (path: string) => void }) {
   const colorStyles = {
     blue: "bg-blue-50 text-blue-600",
     emerald: "bg-emerald-50 text-emerald-600",
@@ -425,7 +442,10 @@ function StatCard({ title, value, unit, icon: Icon, colorType }: { title: string
   };
   
   return (
-    <div className="bg-white rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-slate-100 p-5 flex flex-col gap-3 hover:shadow-md hover:border-slate-200 transition-all group">
+    <div 
+      className={cn("bg-white rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-slate-100 p-5 flex flex-col gap-3 hover:shadow-md hover:border-slate-200 transition-all group", path && "cursor-pointer")}
+      onClick={() => path && onClick && onClick(path)}
+    >
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-slate-500">{title}</p>
         <div className={cn("w-8 h-8 rounded-full flex items-center justify-center transition-transform group-hover:scale-110", colorStyles[colorType])}>

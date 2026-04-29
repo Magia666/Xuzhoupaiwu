@@ -62,10 +62,10 @@ export default function Login() {
                   name="user"
                   value={selectedUser}
                   onChange={(e) => setSelectedUser(e.target.value)}
-                  className="focus:ring-[#0056B3] focus:border-[#0056B3] block w-full pl-10 sm:text-sm border-gray-300 rounded-lg py-2.5 border bg-white"
+                  className="focus:ring-[#0056B3] focus:border-[#0056B3] block w-full pl-10 sm:text-sm border-gray-300 rounded-lg py-2.5 border bg-white text-gray-900"
                 >
                   {loginUsers.map(u => (
-                    <option key={u.username} value={u.username}>
+                    <option key={u.username} value={u.username} className="text-gray-900">
                       {u.name}
                     </option>
                   ))}

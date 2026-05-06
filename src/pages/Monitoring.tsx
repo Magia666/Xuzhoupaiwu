@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Activity, Droplets, Thermometer, Wind, AlertTriangle, FileText, Settings, Download, Eye, Clock, CheckCircle, XCircle, RefreshCw, BarChart2 } from 'lucide-react';
+import { Search, Filter, Activity, Droplets, Thermometer, Wind, AlertTriangle, FileText, Settings, Download, Eye, Clock, CheckCircle, XCircle, RefreshCw, BarChart2, Plus, Edit, Trash2 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
+import Modal from '../components/Modal';
 import { mockMonitoringData, mockHistoricalData, mockReports, mockDevices, mockDetailedTrend } from '../lib/mockData';
 import { cn } from '../lib/utils';
 
@@ -369,6 +370,35 @@ function MonitoringReports() {
 }
 
 function DeviceManagement() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [activeModal, setActiveModal] = useState<'add' | 'edit' | 'config' | 'view' | 'delete' | null>(null);
+  const [selectedDevice, setSelectedDevice] = useState<any>(null);
+
+  const filteredDevices = useMemo(() => {
+    return mockDevices.filter(device => {
+      const matchSearch = device.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          device.outfallName.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchStatus = statusFilter === 'all' || device.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+  }, [searchTerm, statusFilter]);
+
+  const handleOpenModal = (modal: 'add' | 'edit' | 'config' | 'view' | 'delete', device?: any) => {
+    setSelectedDevice(device || null);
+    setActiveModal(modal);
+  };
+
+  const handleCloseModal = () => {
+    setActiveModal(null);
+    setSelectedDevice(null);
+  };
+
+  const handleAction = (msg: string) => {
+    alert(msg); // or toast
+    handleCloseModal();
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="p-4 border-b border-gray-100 flex flex-wrap gap-4 justify-between items-center bg-gray-50/50">
@@ -378,16 +408,29 @@ function DeviceManagement() {
             <input 
               type="text" 
               placeholder="搜索设备编号/排口..." 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] w-64"
             />
           </div>
-          <select className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white">
+          <select 
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white"
+          >
             <option value="all">所有状态</option>
             <option value="正常">正常</option>
             <option value="断连">断连</option>
             <option value="故障">故障</option>
+            <option value="补传中">补传中</option>
           </select>
         </div>
+        <button 
+          onClick={() => handleOpenModal('add')}
+          className="px-4 py-2 bg-[#0056B3] text-white rounded-lg hover:bg-[#004494] text-sm font-medium transition-colors flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" /> 接入设备
+        </button>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
@@ -405,7 +448,7 @@ function DeviceManagement() {
             </tr>
           </thead>
           <tbody className="text-sm divide-y divide-gray-100">
-            {mockDevices.map((row, i) => (
+            {filteredDevices.map((row, i) => (
               <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                 <td className="p-4 font-mono text-gray-900 text-xs">{row.id}</td>
                 <td className="p-4 text-gray-600">{row.outfallName}</td>
@@ -417,11 +460,17 @@ function DeviceManagement() {
                 <td className="p-4 text-gray-600">{row.lastCalibration}</td>
                 <td className="p-4 text-right">
                   <div className="flex justify-end gap-3">
-                    <button className="text-[#0056B3] hover:text-[#004494] flex items-center gap-1 text-xs font-medium">
+                    <button onClick={() => handleOpenModal('view', row)} className="text-[#0056B3] hover:text-[#004494] flex items-center gap-1 text-xs font-medium">
                       <Eye className="w-3.5 h-3.5" /> 详情
                     </button>
-                    <button className="text-gray-600 hover:text-gray-900 flex items-center gap-1 text-xs font-medium">
+                    <button onClick={() => handleOpenModal('edit', row)} className="text-gray-600 hover:text-gray-900 flex items-center gap-1 text-xs font-medium">
+                      <Edit className="w-3.5 h-3.5" /> 编辑
+                    </button>
+                    <button onClick={() => handleOpenModal('config', row)} className="text-gray-600 hover:text-gray-900 flex items-center gap-1 text-xs font-medium">
                       <Settings className="w-3.5 h-3.5" /> 频率配置
+                    </button>
+                    <button onClick={() => handleOpenModal('delete', row)} className="text-red-500 hover:text-red-700 flex items-center gap-1 text-xs font-medium">
+                      <Trash2 className="w-3.5 h-3.5" /> 删除
                     </button>
                   </div>
                 </td>
@@ -430,6 +479,163 @@ function DeviceManagement() {
           </tbody>
         </table>
       </div>
+
+      {activeModal === 'add' && (
+        <Modal title="接入在线监测设备" onClose={handleCloseModal} onConfirm={() => handleAction('接入成功')} size="lg">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">设备编号 <span className="text-red-500">*</span></label>
+              <input type="text" className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none" placeholder="例如：DEV-WQ-006" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">关联排口 <span className="text-red-500">*</span></label>
+              <select className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
+                <option value="">请选择</option>
+                <option value="1">奎河张庄排污口</option>
+                <option value="2">房亭河大吴排污口</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">设备型号 <span className="text-red-500">*</span></label>
+              <input type="text" className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none" placeholder="例如：WQ-3000" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">安装时间 <span className="text-red-500">*</span></label>
+              <input type="date" className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none" />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">监测因子 <span className="text-red-500">*</span></label>
+              <div className="flex flex-wrap gap-4 mt-2">
+                <label className="flex items-center gap-2"><input type="checkbox" defaultChecked /> COD</label>
+                <label className="flex items-center gap-2"><input type="checkbox" defaultChecked /> 氨氮</label>
+                <label className="flex items-center gap-2"><input type="checkbox" defaultChecked /> 总磷</label>
+                <label className="flex items-center gap-2"><input type="checkbox" defaultChecked /> 总氮</label>
+                <label className="flex items-center gap-2"><input type="checkbox" /> 流量</label>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {activeModal === 'edit' && selectedDevice && (
+        <Modal title="编辑设备信息" onClose={handleCloseModal} onConfirm={() => handleAction('编辑成功')} size="lg">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">设备编号 <span className="text-red-500">*</span></label>
+              <input type="text" defaultValue={selectedDevice.id} disabled className="w-full border border-gray-200 bg-gray-50 rounded p-2 text-sm text-gray-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">关联排口 <span className="text-red-500">*</span></label>
+              <input type="text" defaultValue={selectedDevice.outfallName} disabled className="w-full border border-gray-200 bg-gray-50 rounded p-2 text-sm text-gray-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">设备型号 <span className="text-red-500">*</span></label>
+              <input type="text" defaultValue={selectedDevice.model} className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">安装时间 <span className="text-red-500">*</span></label>
+              <input type="date" defaultValue={selectedDevice.installTime} className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none" />
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {activeModal === 'config' && selectedDevice && (
+        <Modal title="调整监测频率" onClose={handleCloseModal} onConfirm={() => handleAction('配置已下发')}>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 mb-4">当前设备：<strong className="text-gray-900">{selectedDevice.id}</strong></p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">数据上报频率</label>
+              <select className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
+                <option value="1">1次 / 1分钟</option>
+                <option value="5">1次 / 5分钟</option>
+                <option value="15">1次 / 15分钟</option>
+                <option value="30">1次 / 30分钟</option>
+                <option value="60">1次 / 1小时</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">校准频率</label>
+              <select className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
+                <option value="d">1次 / 1天</option>
+                <option value="w">1次 / 1周</option>
+                <option value="m">1次 / 1月</option>
+              </select>
+            </div>
+            <div className="p-3 bg-blue-50 border border-blue-100 rounded text-xs text-blue-700">
+              提示：高频率上报可能会增加设备功耗和流量费用。
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {activeModal === 'view' && selectedDevice && (
+        <Modal title="设备详情" onClose={handleCloseModal} showFooter={false}>
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
+              <div>
+                <dt className="text-gray-500">设备编号</dt>
+                <dd className="font-medium text-gray-900 mt-1">{selectedDevice.id}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">关联排口</dt>
+                <dd className="font-medium text-gray-900 mt-1">{selectedDevice.outfallName}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">设备型号</dt>
+                <dd className="font-medium text-gray-900 mt-1">{selectedDevice.model}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">安装时间</dt>
+                <dd className="font-medium text-gray-900 mt-1">{selectedDevice.installTime}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">运行状态</dt>
+                <dd className="mt-1">{getStatusBadge(selectedDevice.status)}</dd>
+              </div>
+              <div>
+                <dt className="text-gray-500">最近校准</dt>
+                <dd className="font-medium text-gray-900 mt-1">{selectedDevice.lastCalibration}</dd>
+              </div>
+            </div>
+            
+            <div className="border-t border-gray-100 pt-4">
+              <h4 className="font-medium text-gray-900 mb-3 text-sm">通信参数</h4>
+              <div className="bg-gray-50 rounded-lg p-3 grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-gray-500">IP地址：</span>
+                  <span className="font-mono text-gray-900 ml-1">192.168.1.100</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">端口：</span>
+                  <span className="font-mono text-gray-900 ml-1">8080</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">协议栈：</span>
+                  <span className="text-gray-900 ml-1">HJ212-2017</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">SIM卡号：</span>
+                  <span className="font-mono text-gray-900 ml-1">898604...</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end pt-2">
+              <button onClick={handleCloseModal} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">关闭</button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {activeModal === 'delete' && selectedDevice && (
+        <Modal title="删除确认" onClose={handleCloseModal} onConfirm={() => handleAction('删除成功')} confirmText="删除" size="sm">
+          <div className="text-gray-700 text-sm">
+            <p className="mb-2">此操作将移除该设备并停止接收其监测数据，请确认是否删除设备：<strong className="text-gray-900">{selectedDevice.id}</strong>？</p>
+            <p className="text-red-500 text-xs mt-4">注意：删除操作不可逆且将导致在线监控报表不再包含该设备新产生的数据。</p>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

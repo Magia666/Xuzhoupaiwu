@@ -1,6 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Search, Eye, Edit, QrCode, MapPin, Download, FileText, Activity, MessageSquare, CheckSquare, X } from "lucide-react";
-import { mockOutfalls, mockInspections, mockTraceability, mockRemediations, mockSignboards, mockMonitoringData, mockWarnings, mockMaintenanceTasks } from "../lib/mockData";
+import { mockOutfalls, mockInspections, mockTraceability, mockRemediations, mockSignboards, mockMonitoringData, mockWarnings, mockMaintenanceTasks, mockDevices } from "../lib/mockData";
+import Modal from "../components/Modal";
 import { cn } from "../lib/utils";
 
 // Simple Toast component
@@ -13,36 +14,7 @@ function Toast({ message, onClose }: { message: string, onClose: () => void }) {
   );
 }
 
-function Modal({ title, children, onClose, onConfirm, confirmText = "确定", showFooter = true, size = "md" }: any) {
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className={cn("bg-white rounded-xl shadow-xl flex flex-col max-h-full", 
-        size === "sm" ? "w-full max-w-md" : 
-        size === "lg" ? "w-full max-w-4xl" : 
-        size === "xl" ? "w-full max-w-6xl" :
-        "w-full max-w-2xl"
-      )}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h3 className="font-bold text-gray-900">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
-        </div>
-        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
-          {children}
-        </div>
-        {showFooter && (
-          <div className="p-4 border-t border-gray-100 flex justify-end gap-3 bg-gray-50 rounded-b-xl shrink-0">
-            <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
-              取消
-            </button>
-            <button onClick={onConfirm} className="px-4 py-2 text-sm font-medium text-white bg-[#0056B3] rounded-lg hover:bg-[#004494]">
-              {confirmText}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+
 
 function OutfallLedgerDetail({ outfall, onOpenModal }: { outfall: any, onOpenModal: (type: string, data?: any) => void }) {
   return (
@@ -533,6 +505,58 @@ function MaintenanceList({ outfallName }: { outfallName: string, onOpenModal: (t
   );
 }
 
+function DeviceList({ outfallName, outfallId }: { outfallName: string, outfallId: string }) {
+  const data = mockDevices.filter(d => d.outfallName === outfallName || d.id === 'DEV-WQ-001' /* fallback if outfallName has no devices specifically mock */);
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-sm font-bold text-gray-900">在线监测设备</h3>
+      </div>
+      {data.length > 0 ? (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <table className="w-full text-left text-sm whitespace-nowrap">
+            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
+              <tr>
+                <th className="py-3 px-4 font-medium">设备编号</th>
+                <th className="py-3 px-4 font-medium">设备型号</th>
+                <th className="py-3 px-4 font-medium">运行状态</th>
+                <th className="py-3 px-4 font-medium">安装时间</th>
+                <th className="py-3 px-4 font-medium">在线率</th>
+                <th className="py-3 px-4 font-medium">数据完整率</th>
+                <th className="py-3 px-4 font-medium">最近校准</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {data.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 font-mono text-gray-600">{item.id}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.model}</td>
+                  <td className="py-3 px-4">
+                    <span className={cn("px-2 py-1 rounded-md text-xs", 
+                      item.status === '正常' ? "bg-green-50 text-green-700" :
+                      item.status === '断连' ? "bg-red-50 text-red-700" :
+                      item.status === '故障' ? "bg-yellow-50 text-yellow-700" :
+                      "bg-blue-50 text-blue-700"
+                    )}>
+                      {item.status}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600">{item.installTime}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.onlineRate}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.integrityRate}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.lastCalibration}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-lg bg-gray-50">暂无关联的在线监测设备</div>
+      )}
+    </div>
+  );
+}
+
 type ModalType = 'addOutfall' | 'editOutfall' | 'rejectOutfall' | 'cancelOutfall' | 'viewPanorama' | 'previewAttachment' | 'addInspection' | 'viewInspection' | 'addTraceability' | 'viewTraceability' | 'addRemediation' | 'viewRemediation' | 'updateRemediation' | 'addSupervision' | 'applyAcceptance' | 'addSignboard' | 'viewSignboard' | 'viewQRCode' | 'downloadAttachment' | null;
 
 export default function Outfalls() {
@@ -544,12 +568,24 @@ export default function Outfalls() {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [modalData, setModalData] = useState<any>(null);
 
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || JSON.stringify({
-    name: "张三 (系统管理员)",
-    role: "SystemAdmin",
-    roleName: "系统管理员",
-    username: "admin"
-  }));
+  const [currentUser, setCurrentUser] = useState(() => {
+    return JSON.parse(localStorage.getItem('currentUser') || JSON.stringify({
+      name: "张三 (系统管理员)",
+      role: "SystemAdmin",
+      roleName: "系统管理员",
+      username: "admin"
+    }));
+  });
+
+  useEffect(() => {
+    const handleUserChange = () => {
+      const saved = localStorage.getItem('currentUser');
+      if (saved) setCurrentUser(JSON.parse(saved));
+    };
+    window.addEventListener('userChange', handleUserChange);
+    return () => window.removeEventListener('userChange', handleUserChange);
+  }, []);
+
   const canEditBaseInfo = currentUser.role === 'SystemAdmin' || currentUser.role === 'DataEntry';
   const canAuditBaseInfo = currentUser.role === 'SystemAdmin' || currentUser.role === 'RemediationAdmin';
 
@@ -1035,6 +1071,7 @@ export default function Outfalls() {
                   { id: 'remediations', label: '整治管理' },
                   { id: 'signboards', label: '标识牌管理' },
                   { id: 'monitoring', label: '在线监测' },
+                  { id: 'devices', label: '设备管理' },
                   { id: 'warnings', label: '事件中心' },
                   { id: 'maintenance', label: '运维管理' },
                 ].map(tab => (
@@ -1062,6 +1099,7 @@ export default function Outfalls() {
               {activeTab === 'remediations' && <RemediationsList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
               {activeTab === 'signboards' && <SignboardsList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
               {activeTab === 'monitoring' && <MonitoringList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
+              {activeTab === 'devices' && <DeviceList outfallName={selectedOutfall.name} outfallId={selectedOutfall.id} />}
               {activeTab === 'warnings' && <WarningsList outfallId={selectedOutfall.id} onOpenModal={handleOpenModal} />}
               {activeTab === 'maintenance' && <MaintenanceList outfallName={selectedOutfall.name} onOpenModal={handleOpenModal} />}
             </div>

@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { Search, Filter, Plus, Wrench, CheckCircle, Clock, AlertCircle, X } from "lucide-react";
+import { Search, Filter, Plus, Wrench, CheckCircle, Clock, AlertCircle, X, Eye, Edit } from "lucide-react";
 import { mockMaintenanceTasks } from "../lib/mockData";
 import { cn } from "../lib/utils";
+import Modal from "../components/Modal";
 
 export default function Maintenance() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -9,8 +10,9 @@ export default function Maintenance() {
   const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [showModal, setShowModal] = useState(false);
-  const [modalContent, setModalContent] = useState("");
+  
+  const [activeModal, setActiveModal] = useState<'add' | 'edit' | 'view' | null>(null);
+  const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
   const filteredTasks = useMemo(() => {
     return mockMaintenanceTasks.filter((task) => {
@@ -24,9 +26,19 @@ export default function Maintenance() {
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage) || 1;
   const currentData = filteredTasks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const handleAction = (action: string, item?: any) => {
-    setModalContent(`${action} ${item ? item.id : ''}`);
-    setShowModal(true);
+  const handleOpenModal = (modal: 'add' | 'edit' | 'view', record?: any) => {
+    setSelectedRecord(record || null);
+    setActiveModal(modal);
+  };
+
+  const handleCloseModal = () => {
+    setActiveModal(null);
+    setSelectedRecord(null);
+  };
+
+  const handleAction = (msg: string) => {
+    alert(msg);
+    handleCloseModal();
   };
 
   return (
@@ -113,7 +125,7 @@ export default function Maintenance() {
           </button>
         </div>
         <button 
-          onClick={() => handleAction("新建工单")}
+          onClick={() => handleOpenModal('add')}
           className="flex items-center gap-2 bg-[#0056B3] hover:bg-[#004494] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -160,7 +172,10 @@ export default function Maintenance() {
                     </span>
                   </td>
                   <td className="py-3 px-4 text-right">
-                    <button onClick={() => handleAction("查看工单详情", task)} className="text-[#0056B3] hover:underline font-medium">查看详情</button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => handleOpenModal('view', task)} className="p-1.5 text-gray-400 hover:text-[#0056B3] hover:bg-blue-50 rounded transition-colors" title="查看"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => handleOpenModal('edit', task)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors" title="编辑"><Edit className="w-4 h-4" /></button>
+                    </div>
                   </td>
                 </tr>
               )) : (
@@ -208,27 +223,97 @@ export default function Maintenance() {
         </div>
       </div>
 
-      {/* Action Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium text-gray-900">系统提示</h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
-                <X className="w-5 h-5" />
-              </button>
+      {activeModal === 'add' && (
+        <Modal title="新建运维工单" onClose={handleCloseModal} onConfirm={() => handleAction('新建工单成功')} size="lg">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">关联排口 <span className="text-red-500">*</span></label>
+              <select className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
+                <option value="">请选择排口</option>
+                <option value="1">奎河张庄排污口</option>
+              </select>
             </div>
-            <p className="text-gray-600 mb-6">正在执行操作：<span className="font-medium text-gray-900">{modalContent}</span></p>
-            <div className="flex justify-end gap-3">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg border border-gray-200">
-                取消
-              </button>
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 text-sm font-medium text-white bg-[#0056B3] hover:bg-[#004494] rounded-lg">
-                确认
-              </button>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">涉及设备</label>
+              <select className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
+                <option value="">请选择设备</option>
+                <option value="dev1">DEV-WQ-001 (水质多参数)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">工单类型 <span className="text-red-500">*</span></label>
+              <select className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
+                <option value="定期巡检">定期巡检</option>
+                <option value="故障报修">故障报修</option>
+                <option value="耗材更换">耗材更换</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">优先级</label>
+              <select className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
+                <option value="1">普通</option>
+                <option value="2">紧急</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">分配运维人员 <span className="text-red-500">*</span></label>
+              <input type="text" className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none" placeholder="输入姓名或工号" />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">工单描述 <span className="text-red-500">*</span></label>
+              <textarea className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none" rows={3}></textarea>
             </div>
           </div>
-        </div>
+        </Modal>
+      )}
+
+      {activeModal === 'edit' && selectedRecord && (
+        <Modal title="编辑运维工单" onClose={handleCloseModal} onConfirm={() => handleAction('修改已保存')} size="lg">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">工单编号</label>
+              <input type="text" defaultValue={selectedRecord.id} disabled className="w-full border border-gray-200 bg-gray-50 rounded p-2 text-sm text-gray-500" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">工单状态</label>
+              <select defaultValue={selectedRecord.status} className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
+                <option value="待处理">待处理</option>
+                <option value="处理中">处理中</option>
+                <option value="已完成">已完成</option>
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">处理结果备注</label>
+              <textarea className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none" rows={3}></textarea>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {activeModal === 'view' && selectedRecord && (
+        <Modal title="工单详情" onClose={handleCloseModal} showFooter={false}>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div><span className="text-gray-500">工单编号：</span><span className="font-medium">{selectedRecord.id}</span></div>
+              <div>
+                <span className="text-gray-500">工单状态：</span>
+                <span className={cn("inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ml-1",
+                  selectedRecord.status === '已完成' ? "bg-green-50 text-green-700" :
+                  selectedRecord.status === '待处理' ? "bg-red-50 text-red-700" :
+                  "bg-orange-50 text-orange-700"
+                )}>{selectedRecord.status}</span>
+              </div>
+              <div><span className="text-gray-500">排口名称：</span><span className="font-medium text-[#0056B3]">{selectedRecord.outfallName}</span></div>
+              <div><span className="text-gray-500">设备名称：</span><span className="font-medium">{selectedRecord.device}</span></div>
+              <div><span className="text-gray-500">工单类型：</span><span className="font-medium">{selectedRecord.type}</span></div>
+              <div><span className="text-gray-500">运维人员：</span><span className="font-medium">{selectedRecord.assignee}</span></div>
+              <div className="col-span-2"><span className="text-gray-500">创建时间：</span><span className="font-medium">{selectedRecord.time}</span></div>
+            </div>
+            <div className="flex justify-end pt-4 border-t border-gray-100">
+              <button onClick={handleCloseModal} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">关闭</button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

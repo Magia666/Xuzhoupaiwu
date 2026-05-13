@@ -16,6 +16,7 @@ import {
   AlertOctagon,
   Signpost,
   BarChart3,
+  Server,
   ChevronDown,
   Info,
   TerminalSquare
@@ -23,13 +24,15 @@ import {
 import { cn } from "../lib/utils";
 import Modal from "./Modal";
 
+import AIAssistant from "./AIAssistant";
+
 const roleFeatures: Record<string, string[]> = {
-  SystemAdmin: ["/", "/outfalls", "/inspection", "/traceability", "/remediation", "/signboard", "/monitoring", "/warnings", "/maintenance", "/analysis", "/system"],
+  SystemAdmin: ["/", "/outfalls", "/inspection", "/traceability", "/remediation", "/signboard", "/monitoring", "/devices", "/warnings", "/maintenance", "/analysis", "/system"],
   DataEntry: ["/", "/outfalls", "/inspection", "/traceability", "/signboard"],
-  MonitoringAnalyst: ["/", "/outfalls", "/traceability", "/monitoring", "/warnings", "/analysis"],
+  MonitoringAnalyst: ["/", "/outfalls", "/traceability", "/monitoring", "/devices", "/warnings", "/analysis"],
   RemediationAdmin: ["/", "/outfalls", "/remediation", "/warnings", "/analysis"],
-  Supervisor: ["/", "/outfalls", "/inspection", "/remediation", "/monitoring", "/warnings"],
-  Maintenance: ["/", "/outfalls", "/signboard", "/monitoring", "/maintenance"],
+  Supervisor: ["/", "/outfalls", "/inspection", "/remediation", "/monitoring", "/devices", "/warnings"],
+  Maintenance: ["/", "/outfalls", "/signboard", "/monitoring", "/devices", "/maintenance"],
 };
 
 const mockUsers = [
@@ -49,6 +52,7 @@ const allNavItems = [
   { name: "整治管理", path: "/remediation", icon: AlertOctagon },
   { name: "标识牌管理", path: "/signboard", icon: Signpost },
   { name: "在线监测", path: "/monitoring", icon: Activity },
+  { name: "设备管理", path: "/devices", icon: Server },
   { name: "事件中心", path: "/warnings", icon: AlertTriangle },
   { name: "运维管理", path: "/maintenance", icon: Wrench },
   { name: "数据分析", path: "/analysis", icon: BarChart3 },
@@ -120,7 +124,28 @@ const devDocs: Record<string, { title: string, content: string[] }> = {
       "2. 【聚合运算与图表】：",
       "   - 使用降采样（Downsampling）算法参数，按“小时/天/月”聚合出各周期的平均值、最大值、最小值，由前端负责装填至 ECharts 提供趋势渲染。",
       "   - 在离线推断算法：比对设备最后一次成功上报记录的时间差，当差值(Now - LastUpdate) > 阈值(如30分钟)，系统判定并更新设备状态为“离线”。",
-      "3. 【告警判定前置分析】：由后端引擎异步或在此模块录入时校验，如某排口指标连续N次超出设定的国标考核安全阈值，直接向 /warnings 下发超标预警。"
+      "3. 【告警判定前置分析】：由后端引擎异步或在此模块录入时校验，如某排口指标连续N次超出设定的国标考核安全阈值，直接向 /warnings 下发超标预警。",
+      "4. 【报告生成模板要求】：后端或前端需要按照以下段落模板进行文本及排版生成：",
+      "   - 一、排口基本信息（本段需动态填入在线排口总数与正常运行数）；",
+      "   - 二、监测数据汇总（本段需计算并填入平均达标率，以及主要指标的均值、标准限值比对）；",
+      "   - 三、超标情况统计（本段需列出告警频次及具体超标排口明细列表）；",
+      "   - 四、水质趋势分析（提供如下可选模板）：",
+      "      > 报告期内区域内主要水体监测指标总体呈平稳趋势，受近期环境及气象条件影响，部分截污未完全闭环的排口（如[XXX]区域）在部分时段内主要指标（如[XXX]）有小幅上涨，其余指标在可控区间波动。（触发条件：80% <= 整体达标率 < 95%，且单一排口连续超标次数 <= 3次）",
+      "      > 近期降雨量增加导致管网溢流，[XXX]区域多个排口数据出现明显恶化趋势，其中[XXX]指标连续超过排放标准，需引起高度重视。（触发条件：整体达标率 < 80%，或某一行政区划内新增告警数环比上涨 > 20%）",
+      "      > 自[XXX]片区截污纳管工程完工后，该片区排口水质显著改善，各项指标均已稳定在国家规定标准内。（触发条件：整体达标率 >= 95%，且告警模块近7天新增告警数环比下降 > 30%）",
+      "   - 五、问题与建议措施（提供如下可选模板）：",
+      "      > 问题：近期监测设备掉线频发。建议：运维单位应当加大老旧高频故障设备（如[XXX]点位）的例行维护和标定校准频次。（触发条件：设备在线率 < 90%，或离线状态设备数量 >= 5台）",
+      "      > 问题：部分老城区及工业周边排口存在污水混流引发的短时超标风险。建议：相关执法部门尽快安排人工对频发超标点位（如[XXX]排污口）进行深度溯源排查。（触发条件：告警模块中同一排口关联的记录出现连续水质超标且溯源状态为空）",
+      "      > 问题：汛期部分管网溢流不堪重负。建议：配合住建或水务加快推进[XXX]片区雨污分流彻底改造工程，降低汛期溢流负荷。（触发条件：溯源模块结论字段包含“管网破损/雨污混流”等关键词的大约等于3次）"
+    ]
+  },
+  "/devices": {
+    title: "设备管理",
+    content: [
+      "1. 【数据来源】：汇聚所有安装的在线监测设备台账信息及运行状态监控数据。",
+      "2. 【状态规则】：根据最近上报时间差(Now - LastUpdate)和通信状态计算设备在线或离线；",
+      "3. 【联动逻辑】：对故障、断连的设备系统会自动触发运维工单流转至 /maintenance 模块；",
+      "4. 【权限与安全】：修改配置或重新分配设备需要系统管理员或运维主管审批权限。"
     ]
   },
   "/warnings": {
@@ -388,6 +413,8 @@ export default function Layout() {
           </div>
         </Modal>
       )}
+      {/* AI Assistant Floating Chat */}
+      <AIAssistant />
     </div>
   );
 }

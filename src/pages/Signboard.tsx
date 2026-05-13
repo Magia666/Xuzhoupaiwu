@@ -7,18 +7,22 @@ import Modal from "../components/Modal";
 export default function Signboard() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [activeModal, setActiveModal] = useState<'add' | 'edit' | 'view' | null>(null);
+  const [typeFilter, setTypeFilter] = useState("");
+  const [regionFilter, setRegionFilter] = useState("");
+  const [activeModal, setActiveModal] = useState<'add' | 'edit' | 'view' | 'maintenance' | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
   const filteredData = useMemo(() => {
     return mockSignboards.filter(item => {
-      const matchSearch = item.id.includes(searchTerm) || item.outfallName.includes(searchTerm);
+      const matchSearch = item.code.includes(searchTerm) || item.outfallName.includes(searchTerm) || item.id.includes(searchTerm);
       const matchStatus = statusFilter ? item.installStatus === statusFilter : true;
-      return matchSearch && matchStatus;
+      const matchType = typeFilter ? item.type === typeFilter : true;
+      const matchRegion = regionFilter ? item.region === regionFilter : true;
+      return matchSearch && matchStatus && matchType && matchRegion;
     });
-  }, [searchTerm, statusFilter]);
+  }, [searchTerm, statusFilter, typeFilter, regionFilter]);
 
-  const handleOpenModal = (modal: 'add' | 'edit' | 'view', record?: any) => {
+  const handleOpenModal = (modal: 'add' | 'edit' | 'view' | 'maintenance', record?: any) => {
     setSelectedRecord(record || null);
     setActiveModal(modal);
   };
@@ -32,6 +36,18 @@ export default function Signboard() {
     alert(msg);
     handleCloseModal();
   };
+
+  // Helper for color badge
+  const getTypeColor = (type: string) => {
+    switch(type) {
+      case "工业排污口": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "城镇污水处理厂排污口": return "bg-red-100 text-red-800 border-red-200";
+      case "农业排口": return "bg-green-100 text-green-800 border-green-200";
+      default: return "bg-blue-100 text-blue-800 border-blue-200"; // 其他排口
+    }
+  };
+
+  const uniqueRegions = Array.from(new Set(mockSignboards.map(s => s.region)));
 
   return (
     <div className="flex flex-col gap-6 h-full">
@@ -49,6 +65,17 @@ export default function Signboard() {
               />
             </div>
             <select 
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
+            >
+              <option value="">全部类型</option>
+              <option value="工业排污口">工业排污口</option>
+              <option value="城镇污水处理厂排污口">城镇污水处理厂排污口</option>
+              <option value="农业排口">农业排口</option>
+              <option value="其他排口">其他排口</option>
+            </select>
+            <select 
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
@@ -57,8 +84,18 @@ export default function Signboard() {
               <option value="已安装">已安装</option>
               <option value="待安装">待安装</option>
             </select>
+            <select 
+              value={regionFilter}
+              onChange={(e) => setRegionFilter(e.target.value)}
+              className="py-2 px-3 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white text-gray-600"
+            >
+              <option value="">全部区域</option>
+              {uniqueRegions.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
             <button 
-              onClick={() => { setSearchTerm(""); setStatusFilter(""); }}
+              onClick={() => { setSearchTerm(""); setStatusFilter(""); setTypeFilter(""); setRegionFilter(""); }}
               className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition-colors"
               title="重置过滤"
             >
@@ -71,7 +108,7 @@ export default function Signboard() {
             </button>
             <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-lg transition-colors shadow-sm">
               <Download className="w-4 h-4" />
-              导出
+              导出台账
             </button>
           </div>
         </div>
@@ -82,7 +119,7 @@ export default function Signboard() {
               <tr>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">标志牌编号</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">排污口名称</th>
-                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">排口类型</th>
+                <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">标牌类型/底色</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">规格尺寸</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">所属区域</th>
                 <th className="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">安装状态/日期</th>
@@ -92,30 +129,37 @@ export default function Signboard() {
             <tbody className="divide-y divide-gray-100">
               {filteredData.length > 0 ? filteredData.map((row) => (
                 <tr key={row.id} className="hover:bg-blue-50/30 transition-colors">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.id}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{row.code || row.id}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-gray-400" />
                       <span className="text-sm font-medium text-[#0056B3]">{row.outfallName}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{row.type}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <span className={cn("px-2 py-1 text-xs border rounded-full font-medium", getTypeColor(row.type))}>
+                      {row.type}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-600 font-mono">{row.spec}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{row.region}</td>
                   <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className={cn("px-2 py-0.5 text-xs font-medium rounded",
-                        row.installStatus === '已安装' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                    <div className="flex flex-col gap-1 text-xs">
+                      <span className={cn("inline-flex w-fit px-2 py-0.5 font-medium rounded",
+                        row.installStatus === '已安装' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
                       )}>
                         {row.installStatus}
                       </span>
-                      <span className="text-xs text-gray-500">{row.installTime !== '-' && row.installTime}</span>
+                      {row.installStatus === '已安装' && row.installTime !== '-' && (
+                        <span className="text-gray-500">{row.installTime}</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button onClick={() => handleOpenModal('view', row)} className="p-1.5 text-gray-400 hover:text-[#0056B3] hover:bg-blue-50 rounded transition-colors" title="查看"><Eye className="w-4 h-4" /></button>
                       <button onClick={() => handleOpenModal('edit', row)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors" title="编辑"><Edit className="w-4 h-4" /></button>
+                      <button onClick={() => handleOpenModal('maintenance', row)} className="text-xs text-[#0056B3] hover:underline px-2 py-1">维护记录</button>
                     </div>
                   </td>
                 </tr>
@@ -220,35 +264,77 @@ export default function Signboard() {
 
       {activeModal === 'view' && selectedRecord && (
         <Modal title="标志牌信息详情" onClose={handleCloseModal} showFooter={false}>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div><span className="text-gray-500">编号：</span><span className="font-medium">{selectedRecord.id}</span></div>
-              <div><span className="text-gray-500">排口：</span><span className="font-medium text-[#0056B3]">{selectedRecord.outfallName}</span></div>
-              <div><span className="text-gray-500">排口类型：</span><span className="font-medium">{selectedRecord.type}</span></div>
-              <div><span className="text-gray-500">标志牌规格：</span><span className="font-medium font-mono">{selectedRecord.spec}</span></div>
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-y-4 gap-x-8 text-sm">
+              <div className="col-span-2">
+                <span className="text-gray-500 block mb-1">排口名称：</span>
+                <span className="font-medium text-[#0056B3] text-lg">{selectedRecord.outfallName}</span>
+              </div>
+              <div><span className="text-gray-500">标志牌编号：</span><span className="font-medium">{selectedRecord.code || selectedRecord.id}</span></div>
+              <div>
+                <span className="text-gray-500">排口类型：</span>
+                <span className={cn("px-2 py-0.5 text-xs border rounded-full font-medium ml-2", getTypeColor(selectedRecord.type))}>{selectedRecord.type}</span>
+              </div>
+              <div><span className="text-gray-500">规格尺寸：</span><span className="font-medium font-mono">{selectedRecord.spec}</span></div>
               <div><span className="text-gray-500">所属区域：</span><span className="font-medium">{selectedRecord.region}</span></div>
+              <div><span className="text-gray-500">制作单位：</span><span className="font-medium">{selectedRecord.manufacturer || '-'}</span></div>
+              <div><span className="text-gray-500">制作完成时间：</span><span className="font-medium">{selectedRecord.manufacturingDate || '-'}</span></div>
               <div>
                 <span className="text-gray-500">安装状态：</span>
                 <span className={cn("ml-1 font-medium", selectedRecord.installStatus === '已安装' ? 'text-green-600' : 'text-yellow-600')}>{selectedRecord.installStatus}</span>
               </div>
-              <div className="col-span-2"><span className="text-gray-500">安装时间：</span><span className="font-medium">{selectedRecord.installTime !== '-' ? selectedRecord.installTime : '暂无'}</span></div>
+              <div><span className="text-gray-500">安装时间：</span><span className="font-medium">{selectedRecord.installTime !== '-' ? selectedRecord.installTime : '暂无'}</span></div>
+              <div className="col-span-2"><span className="text-gray-500">安装位置：</span><span className="font-medium">{selectedRecord.installLocation || '-'}</span></div>
+              <div className="col-span-2"><span className="text-gray-500">安装人员：</span><span className="font-medium">{selectedRecord.installer || '-'}</span></div>
             </div>
-            <div className="text-sm border-t border-gray-100 pt-4">
-              <div className="text-gray-500 mb-2">现场二维码：</div>
-              <div className="bg-gray-50 p-6 flex flex-col items-center justify-center border border-gray-200 rounded-lg max-w-fit mt-2 mx-auto">
-                <div className="w-32 h-32 bg-gray-200 border-4 border-white shadow-sm mb-2 relative overflow-hidden">
-                  <div className="absolute inset-0 flex flex-col pt-2 justify-between">
-                    <div className="flex px-2 space-x-1"><div className="w-2 h-2 bg-black"></div><div className="w-2 h-2 bg-black"></div></div>
-                    <div className="flex px-2 space-x-1 justify-end"><div className="w-2 h-2 bg-black"></div></div>
-                    <div className="flex px-2 space-x-1"><div className="w-2 h-2 bg-black"></div><div className="w-2 h-2 bg-black"></div></div>
-                  </div>
-                  <div className="absolute inset-2 bg-white flex items-center justify-center">
-                    <MapPin className="w-6 h-6 text-[#0056B3]" />
-                  </div>
-                </div>
-                <div className="text-xs text-gray-500 text-center font-mono">{selectedRecord.id}</div>
+
+            {selectedRecord.installStatus === '已安装' && selectedRecord.photoUrl && (
+              <div className="text-sm border-t border-gray-100 pt-4">
+                <div className="text-gray-500 mb-2">现场照片：</div>
+                <img src={selectedRecord.photoUrl} alt="标志牌现场照片" className="max-w-full h-48 object-cover rounded-lg border border-gray-200" />
               </div>
+            )}
+
+            <div className="flex justify-end pt-4 border-t border-gray-100">
+              <button onClick={handleCloseModal} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">关闭</button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {activeModal === 'maintenance' && selectedRecord && (
+        <Modal title={`${selectedRecord.outfallName} - 维护记录`} onClose={handleCloseModal} showFooter={false}>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
+              <div className="text-sm">
+                <span className="text-gray-500 mr-2">当前标志牌:</span>
+                <span className="font-medium">{selectedRecord.code || selectedRecord.id}</span>
+              </div>
+              <button className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-[#0056B3] hover:bg-[#004494] rounded shadow-sm">
+                <Plus className="w-4 h-4" /> 新增记录
+              </button>
+            </div>
+
+            {(!selectedRecord.maintenanceRecords || selectedRecord.maintenanceRecords.length === 0) ? (
+              <div className="py-8 text-center text-sm text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                暂无维护记录
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {selectedRecord.maintenanceRecords.map((record: any, index: number) => (
+                  <div key={index} className="p-3 border border-gray-200 rounded-lg bg-white relative">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="text-sm font-medium text-gray-900">{record.maintenanceTime}</div>
+                      <div className="text-xs text-gray-500">维护人: <span className="text-gray-700">{record.maintainer}</span></div>
+                    </div>
+                    <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                      {record.content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
             <div className="flex justify-end pt-4 border-t border-gray-100">
               <button onClick={handleCloseModal} className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50">关闭</button>
             </div>

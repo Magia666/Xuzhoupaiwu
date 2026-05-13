@@ -299,6 +299,15 @@ function RemediationsList({ outfallId, onOpenModal }: { outfallId: string, onOpe
 
 function SignboardsList({ outfallId, onOpenModal }: { outfallId: string, onOpenModal: (type: string, data?: any) => void }) {
   const data = mockSignboards.filter(i => i.outfallId === outfallId);
+  const getTypeColor = (type: string) => {
+    switch(type) {
+      case "工业排污口": return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "城镇污水处理厂排污口": return "bg-red-100 text-red-800 border-red-200";
+      case "农业排口": return "bg-green-100 text-green-800 border-green-200";
+      default: return "bg-blue-100 text-blue-800 border-blue-200"; // 其他排口
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -311,37 +320,43 @@ function SignboardsList({ outfallId, onOpenModal }: { outfallId: string, onOpenM
         </button>
       </div>
       {data.length > 0 ? (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <table className="w-full text-left text-sm whitespace-nowrap">
-            <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
-              <tr>
-                <th className="py-3 px-4 font-medium">标识牌编号</th>
-                <th className="py-3 px-4 font-medium">标识牌类型</th>
-                <th className="py-3 px-4 font-medium">规格型号</th>
-                <th className="py-3 px-4 font-medium">安装状态</th>
-                <th className="py-3 px-4 font-medium">安装时间</th>
-                <th className="py-3 px-4 font-medium text-right">操作</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {data.map(item => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="py-3 px-4 font-mono text-gray-600">{item.id}</td>
-                  <td className="py-3 px-4 text-gray-600">{item.type}</td>
-                  <td className="py-3 px-4 text-gray-600">{item.spec}</td>
-                  <td className="py-3 px-4">
-                    <span className={cn("px-2 py-1 rounded-md text-xs", item.installStatus === '已安装' ? "bg-green-50 text-green-700" : "bg-orange-50 text-orange-700")}>
-                      {item.installStatus}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600">{item.installTime}</td>
-                  <td className="py-3 px-4 text-right">
-                    <button onClick={() => onOpenModal("viewSignboard", item)} className="p-1 text-gray-400 hover:text-[#0056B3]" title="查看详情"><Eye className="w-4 h-4" /></button>
-                  </td>
+        <div className="border border-gray-200 rounded-lg overflow-hidden flex flex-col min-h-0">
+          <div className="overflow-x-auto w-full custom-scrollbar">
+            <table className="w-full text-left text-sm whitespace-nowrap min-w-[650px]">
+              <thead className="bg-gray-50 border-b border-gray-200 text-gray-500">
+                <tr>
+                  <th className="py-3 px-4 font-medium">编号</th>
+                  <th className="py-3 px-4 font-medium">标识牌类型</th>
+                  <th className="py-3 px-4 font-medium">规格型号</th>
+                  <th className="py-3 px-4 font-medium">安装状态</th>
+                  <th className="py-3 px-4 font-medium">安装时间</th>
+                  <th className="py-3 px-4 font-medium text-right">操作</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {data.map(item => (
+                  <tr key={item.id} className="hover:bg-gray-50">
+                    <td className="py-3 px-4 font-mono text-gray-600">{item.code || item.id}</td>
+                    <td className="py-3 px-4 text-gray-600">
+                      <span className={cn("px-2 py-0.5 text-xs border rounded-full font-medium inline-block", getTypeColor(item.type))}>
+                        {item.type}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-gray-600">{item.spec}</td>
+                    <td className="py-3 px-4">
+                      <span className={cn("inline-flex w-fit px-2 py-1 rounded-md text-xs font-medium", item.installStatus === '已安装' ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700")}>
+                        {item.installStatus}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-gray-600">{item.installTime}</td>
+                    <td className="py-3 px-4 text-right">
+                      <button onClick={() => onOpenModal("viewSignboard", item)} className="p-1 text-gray-400 hover:text-[#0056B3]" title="查看详情"><Eye className="w-4 h-4" /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
         <div className="text-center py-12 text-gray-500 border border-gray-200 rounded-lg bg-gray-50">暂无标识牌信息</div>
@@ -854,12 +869,43 @@ export default function Outfalls() {
       case 'viewSignboard':
         return (
           <Modal title="标识牌详情" onClose={handleCloseModal} showFooter={false}>
-            <div className="space-y-3 text-sm">
-              <p><span className="text-gray-500 w-24 inline-block">标识牌编号:</span> {modalData?.id}</p>
-              <p><span className="text-gray-500 w-24 inline-block">标识牌类型:</span> {modalData?.type}</p>
-              <p><span className="text-gray-500 w-24 inline-block">规格型号:</span> {modalData?.spec}</p>
-              <p><span className="text-gray-500 w-24 inline-block">安装状态:</span> {modalData?.installStatus}</p>
-              <p><span className="text-gray-500 w-24 inline-block">安装时间:</span> {modalData?.installTime}</p>
+            <div className="space-y-4 text-sm">
+              <div className="grid grid-cols-2 gap-y-3">
+                <p><span className="text-gray-500 w-24 inline-block">标识牌编号:</span> {modalData?.code || modalData?.id}</p>
+                <p><span className="text-gray-500 w-24 inline-block">标识牌类型:</span> {modalData?.type}</p>
+                <p><span className="text-gray-500 w-24 inline-block">规格型号:</span> {modalData?.spec}</p>
+                <p><span className="text-gray-500 w-24 inline-block">制作单位:</span> {modalData?.manufacturer || '-'}</p>
+                <p><span className="text-gray-500 w-24 inline-block">制作时间:</span> {modalData?.manufacturingDate || '-'}</p>
+                <p><span className="text-gray-500 w-24 inline-block">安装位置:</span> {modalData?.installLocation || '-'}</p>
+                <p><span className="text-gray-500 w-24 inline-block">安装状态:</span> {modalData?.installStatus}</p>
+                <p><span className="text-gray-500 w-24 inline-block">安装时间:</span> {modalData?.installTime}</p>
+                <p><span className="text-gray-500 w-24 inline-block">安装人员:</span> {modalData?.installer || '-'}</p>
+              </div>
+              {modalData?.installStatus === '已安装' && modalData?.photoUrl && (
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="text-gray-500 mb-2">现场照片：</div>
+                  <img src={modalData.photoUrl} alt="标志牌现场照片" className="max-w-full h-48 object-cover rounded-lg border border-gray-200" />
+                </div>
+              )}
+              
+              <div className="border-t border-gray-100 pt-4">
+                <div className="text-gray-500 mb-2">维护记录：</div>
+                {(!modalData?.maintenanceRecords || modalData.maintenanceRecords.length === 0) ? (
+                  <div className="text-gray-400 py-2">暂无维护记录</div>
+                ) : (
+                  <div className="space-y-2">
+                    {modalData.maintenanceRecords.map((r: any, idx: number) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded text-xs border border-gray-100">
+                        <div className="flex justify-between mb-1 font-medium text-gray-700">
+                          <span>{r.maintenanceTime}</span>
+                          <span>维护人: {r.maintainer}</span>
+                        </div>
+                        <div className="text-gray-600">{r.content}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </Modal>
         );

@@ -56,6 +56,7 @@ export default function Remediation() {
               <option value="">全部状态</option>
               <option value="待整治">待整治</option>
               <option value="整治中">整治中</option>
+              <option value="已完成">已完成</option>
               <option value="已销号">已销号</option>
             </select>
             <button 
@@ -107,6 +108,8 @@ export default function Remediation() {
                     <span className={`px-2.5 py-1 text-xs font-medium rounded-full border ${
                       row.progressStatus === '已销号' 
                         ? 'bg-green-50 text-green-700 border-green-200' 
+                        : row.progressStatus === '已完成'
+                        ? 'bg-teal-50 text-teal-700 border-teal-200'
                         : row.progressStatus === '整治中'
                         ? 'bg-blue-50 text-blue-700 border-blue-200'
                         : 'bg-red-50 text-red-700 border-red-200'
@@ -158,6 +161,7 @@ export default function Remediation() {
               <select className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
                 <option value="待整治">待整治</option>
                 <option value="整治中">整治中</option>
+                <option value="已完成">已完成</option>
               </select>
             </div>
             <div className="col-span-2">
@@ -182,6 +186,15 @@ export default function Remediation() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">截止日期 <span className="text-red-500">*</span></label>
               <input type="date" defaultValue={selectedRecord.deadline} className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">整治状态</label>
+              <select defaultValue={selectedRecord.progressStatus} className="w-full border border-gray-300 rounded p-2 text-sm focus:border-[#0056B3] focus:outline-none">
+                <option value="待整治">待整治</option>
+                <option value="整治中">整治中</option>
+                <option value="已完成">已完成</option>
+                <option value="已销号">已销号</option>
+              </select>
             </div>
             <div className="col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">整治目标描述 <span className="text-red-500">*</span></label>

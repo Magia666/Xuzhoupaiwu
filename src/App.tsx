@@ -9,6 +9,7 @@ import Signboard from "./pages/Signboard";
 import Monitoring from "./pages/Monitoring";
 import Warnings from "./pages/Warnings";
 import Maintenance from "./pages/Maintenance";
+import Devices from "./pages/Devices";
 import DataAnalysis from "./pages/DataAnalysis";
 import System from "./pages/System";
 import Screen from "./pages/Screen";
@@ -26,6 +27,7 @@ export default function App() {
           <Route path="remediation" element={<Remediation />} />
           <Route path="signboard" element={<Signboard />} />
           <Route path="monitoring" element={<Monitoring />} />
+          <Route path="devices" element={<Devices />} />
           <Route path="warnings" element={<Warnings />} />
           <Route path="maintenance" element={<Maintenance />} />
           <Route path="analysis" element={<DataAnalysis />} />

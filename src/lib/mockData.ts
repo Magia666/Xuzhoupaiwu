@@ -1,33 +1,33 @@
 export const mockStats = {
-  totalOutfalls: 12,
-  completedRectification: 1, // Matches 1 '已销号' in mockRemediations
-  onlineMonitoring: 8, // Matches 8 online items in mockMonitoringData
-  waterQualityCompliance: 75.0, // 9 out of 12 normal/offline (not warning)
+  totalOutfalls: 13,
+  completedRectification: 1, // Matches '已销号' in mockRemediations
+  onlineMonitoring: 8, // Matches items in mockMonitoringData
+  waterQualityCompliance: 75.0,
   licensedOutfalls: 11,
   todayDischarge: 12.8,
   monthDischarge: 385,
   dischargeChange: -2.4,
-  waterQualityPassRate: 75.0,
+  waterQualityPassRate: 75.0, // 9 pass out of 12 valid
   todayExceed: 0,
   monthExceed: 2,
-  sectionPassRate: 66.7, // 2 out of 3 sections in mockSections
+  sectionPassRate: 66.7, // 2 pass out of 3
   totalSections: 3,
   excellentWaterRate: 66.7,
   archiveCompletionRate: 100,
-  licenseRequirementRate: 91.7, // 11 out of 12
-  processingTimelinessRate: 71.4, // 5 out of 7 processed or finishing
-  alarmResolutionRate: 28.6, // 2 out of 7 completed
-  totalWarnings: 7,
-  unhandledWarnings: 3, 
+  licenseRequirementRate: 84.6, // 11 / 13
+  processingTimelinessRate: 60.0, // 6 processed or processing out of 10 warnings
+  alarmResolutionRate: 30.0, // 3 completed out of 10 warnings
+  totalWarnings: 10,
+  unhandledWarnings: 4, // 4 待处理 in mockWarnings
   flowToday: 12450,
   averageCOD: 15.2,
-  deviceOnlineRate: 83.3 // 10 out of 12 (excluding offline)
+  deviceOnlineRate: 83.3
 };
 
 export const mockDistribution = {
-  industrial: { count: 5, percent: 42 },
-  agricultural: { count: 4, percent: 33 },
-  urbanOther: { count: 3, percent: 25 },
+  industrial: { count: 4, percent: 30.8 }, // 4 工业排污口
+  agricultural: { count: 4, percent: 30.8 }, // 4 农业排口
+  urbanOther: { count: 5, percent: 38.4 }, // 2 城镇 + 3 其他
 };
 
 export const mockSections = [
@@ -96,7 +96,7 @@ export const mockMonitoringData = [
   { id: "EB320312002", name: "房亭河大吴排污口", cod: 45.5, nh3n: 2.1, tp: 0.4, tn: 3.5, ph: 6.8, flow: 350, status: "故障", lastUpdate: "2026-03-18 10:30:00" },
   { id: "EB320312003", name: "故黄河汉王排污口", cod: null, nh3n: null, tp: null, tn: null, ph: null, flow: null, status: "断连", lastUpdate: "2026-03-17 15:00:00" },
   { id: "EB320312005", name: "不牢河排污口", cod: 12.1, nh3n: 0.3, tp: 0.05, tn: 0.8, ph: 7.5, flow: 80, status: "正常", lastUpdate: "2026-03-18 10:30:00" },
-  { id: "EB320312007", name: "丁万河排污口", cod: 18.4, nh3n: 0.8, tp: 0.15, tn: 1.5, ph: 7.1, flow: 150, status: "补传中", lastUpdate: "2026-03-18 10:45:00" },
+  { id: "EB320312007", name: "丁万河排污口", cod: 18.4, nh3n: 0.8, tp: 0.15, tn: 1.5, ph: 7.1, flow: 150, status: "正常", lastUpdate: "2026-03-18 10:45:00" },
   { id: "EB320312008", name: "京杭运河排污口", cod: 55.2, nh3n: 3.5, tp: 0.6, tn: 4.2, ph: 6.5, flow: 420, status: "正常", lastUpdate: "2026-03-18 10:45:00" },
   { id: "EB320312009", name: "废黄河排污口", cod: 22.1, nh3n: 1.1, tp: 0.2, tn: 1.8, ph: 7.3, flow: 95, status: "正常", lastUpdate: "2026-03-18 10:50:00" },
   { id: "EB320312011", name: "新沂河排污口", cod: 14.5, nh3n: 0.4, tp: 0.08, tn: 1.0, ph: 7.6, flow: 110, status: "正常", lastUpdate: "2026-03-18 10:15:00" },
@@ -116,14 +116,18 @@ export const mockReports = [
   { id: "RPT2026031801", name: "铜山区排污口水质日报 (2026-03-17)", type: "日报", generateTime: "2026-03-18 00:05:00", status: "已生成" },
   { id: "RPT2026031601", name: "铜山区排污口水质周报 (第11周)", type: "周报", generateTime: "2026-03-16 00:10:00", status: "已生成" },
   { id: "RPT2026030101", name: "铜山区排污口水质月报 (2026年2月)", type: "月报", generateTime: "2026-03-01 00:15:00", status: "已生成" },
+  { id: "RPT2026010101", name: "铜山区排污口水质年报 (2025年度)", type: "年报", generateTime: "2026-01-01 10:00:00", status: "已生成" },
 ];
 
 export const mockDevices = [
   { id: "DEV-WQ-001", outfallName: "奎河张庄排污口", model: "WQ-2000", installTime: "2024-05-10", status: "正常", onlineRate: "99.8%", integrityRate: "99.5%", lastCalibration: "2026-03-01" },
   { id: "DEV-WQ-002", outfallName: "房亭河大吴排污口", model: "WQ-2000", installTime: "2024-06-15", status: "故障", onlineRate: "98.5%", integrityRate: "98.0%", lastCalibration: "2026-02-15" },
   { id: "DEV-WQ-003", outfallName: "故黄河汉王排污口", model: "WQ-1500", installTime: "2023-10-20", status: "断连", onlineRate: "85.2%", integrityRate: "80.1%", lastCalibration: "2025-12-10" },
-  { id: "DEV-WQ-004", outfallName: "微山湖沿岸排污口", model: "WQ-3000", installTime: "2025-01-05", status: "补传中", onlineRate: "95.0%", integrityRate: "92.5%", lastCalibration: "2026-01-20" },
   { id: "DEV-WQ-005", outfallName: "不牢河排污口", model: "WQ-2000", installTime: "2024-08-12", status: "正常", onlineRate: "90.5%", integrityRate: "88.0%", lastCalibration: "2026-02-28" },
+  { id: "DEV-WQ-007", outfallName: "丁万河排污口", model: "WQ-3000", installTime: "2025-01-05", status: "正常", onlineRate: "95.0%", integrityRate: "92.5%", lastCalibration: "2026-01-20" },
+  { id: "DEV-WQ-008", outfallName: "京杭运河排污口", model: "WQ-2000", installTime: "2024-11-12", status: "正常", onlineRate: "99.1%", integrityRate: "98.5%", lastCalibration: "2026-03-10" },
+  { id: "DEV-WQ-009", outfallName: "废黄河排污口", model: "WQ-1500", installTime: "2023-12-05", status: "正常", onlineRate: "88.5%", integrityRate: "85.0%", lastCalibration: "2026-01-15" },
+  { id: "DEV-WQ-011", outfallName: "新沂河排污口", model: "WQ-2000", installTime: "2025-06-20", status: "正常", onlineRate: "96.4%", integrityRate: "95.2%", lastCalibration: "2026-02-10" },
 ];
 
 export const mockMaintenanceTasks = [
@@ -146,9 +150,12 @@ export const mockDetailedTrend = [
 
 export const mockWarnings = [
   { id: "W20260318001", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "水质超标预警", level: 1, time: "2026-03-18 10:23:00", status: "待处理", desc: "COD超标2.5倍" },
+  { id: "W20260318011", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "水质超标预警", level: 1, time: "2026-03-18 06:10:00", status: "待处理", desc: "COD超标1.5倍" },
+  { id: "W20260317005", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "水质超标预警", level: 1, time: "2026-03-17 22:45:00", status: "处理中", desc: "COD超标1.8倍" },
   { id: "W20260318002", outfallId: "EB320312003", outfallName: "故黄河汉王排污口", type: "设备故障预警", level: 2, time: "2026-03-18 09:15:00", status: "处理中", desc: "设备离线超6小时" },
   { id: "W20260317001", outfallId: "EB320312001", outfallName: "奎河张庄排污口", type: "水质超标预警", level: 3, time: "2026-03-17 14:30:00", status: "已完成", desc: "氨氮超标0.5倍" },
   { id: "W20260318003", outfallId: "EB320312008", outfallName: "京杭运河排污口", type: "水质超标预警", level: 1, time: "2026-03-18 10:45:00", status: "待处理", desc: "总磷超标3.0倍" },
+  { id: "W20260317006", outfallId: "EB320312008", outfallName: "京杭运河排污口", type: "水质超标预警", level: 2, time: "2026-03-17 08:30:00", status: "已完成", desc: "总磷超标1.2倍" },
   { id: "W20260318004", outfallId: "EB320312010", outfallName: "骆马湖排污口", type: "设备故障预警", level: 2, time: "2026-03-18 08:20:00", status: "待处理", desc: "数据采集仪通信中断" },
   { id: "W20260316002", outfallId: "EB320312012", outfallName: "沭河排污口", type: "水质超标预警", level: 3, time: "2026-03-16 11:10:00", status: "已完成", desc: "pH值异常" },
   { id: "W20260318005", outfallId: "EB320312004", outfallName: "微山湖沿岸排污口", type: "设备故障预警", level: 2, time: "2026-03-18 11:05:00", status: "处理中", desc: "流量计数据异常" },
@@ -176,12 +183,15 @@ export const mockTraceability = [
 
 export const mockRemediations = [
   { id: "REM2026031001", outfallId: "EB320312001", outfallName: "奎河张庄排污口", goal: "消除劣V类水体排放", entity: "某某化工厂", person: "张三", deadline: "2026-06-30", progressStatus: "整治中" },
-  { id: "REM2026021502", outfallId: "EB320312008", outfallName: "京杭运河排污口", goal: "雨污分流改造", entity: "运河镇政府", person: "郑十", deadline: "2026-05-01", progressStatus: "未整治" },
+  { id: "REM2026021502", outfallId: "EB320312008", outfallName: "京杭运河排污口", goal: "雨污分流改造", entity: "运河镇政府", person: "郑十", deadline: "2026-05-01", progressStatus: "已完成" },
   { id: "REM2025110103", outfallId: "EB320312012", outfallName: "沭河排污口", goal: "封堵非法排污口", entity: "沭河镇政府", person: "吴四", deadline: "2025-12-31", progressStatus: "已销号" },
+  { id: "REM2025121004", outfallId: "EB320312004", outfallName: "微山湖沿岸排污口", goal: "规范化排污口建设", entity: "沿湖村委会", person: "赵六", deadline: "2026-08-15", progressStatus: "待整治" },
 ];
 
 export const mockSignboards = [
-  { id: "SB-EB320312001", outfallId: "EB320312001", outfallName: "奎河张庄排污口", type: "工业排污口", spec: "1200mm*800mm", installStatus: "已安装", region: "铜山区", installTime: "2025-05-10" },
-  { id: "SB-EB320312002", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "城镇污水处理厂排污口", spec: "1200mm*800mm", installStatus: "已安装", region: "铜山区", installTime: "2025-06-15" },
-  { id: "SB-EB320312003", outfallId: "EB320312003", outfallName: "故黄河汉王排污口", type: "农业排口", spec: "800mm*600mm", installStatus: "待安装", region: "铜山区", installTime: "-" },
+  { id: "SB-EB320312001", code: "SB-001", outfallId: "EB320312001", outfallName: "奎河张庄排污口", type: "工业排污口", spec: "1200mm*800mm", manufacturer: "徐州环宇标识智造有限公司", manufacturingDate: "2025-04-20", installStatus: "已安装", region: "铜山区", installTime: "2025-05-10", installLocation: "排污口岸边东侧醒目位置", installer: "张三", photoUrl: "https://images.unsplash.com/photo-1584984647265-ceadcffaeb8a?w=400&q=80", maintenanceRecords: [{ maintenanceTime: "2025-10-15", content: "擦拭表面污泥，加固立柱", maintainer: "李四" }, { maintenanceTime: "2026-03-01", content: "重新喷涂褪色字迹", maintainer: "王五" }] },
+  { id: "SB-EB320312002", code: "SB-002", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "城镇污水处理厂排污口", spec: "1200mm*800mm", manufacturer: "徐州环宇标识智造有限公司", manufacturingDate: "2025-05-20", installStatus: "已安装", region: "铜山区", installTime: "2025-06-15", installLocation: "处理厂排放口大门右侧", installer: "赵六", photoUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=400&q=80", maintenanceRecords: [{ maintenanceTime: "2025-12-05", content: "除草清障，保障视线清晰", maintainer: "宋七" }] },
+  { id: "SB-EB320312003", code: "SB-003", outfallId: "EB320312003", outfallName: "故黄河汉王排污口", type: "农业排口", spec: "800mm*600mm", manufacturer: "诚辉五金标识厂", manufacturingDate: "2025-08-01", installStatus: "待安装", region: "铜山区", installTime: "-", installLocation: "-", installer: "-", photoUrl: "", maintenanceRecords: [] },
+  { id: "SB-EB320312004", code: "SB-004", outfallId: "EB320312004", outfallName: "微山湖沿岸排污口", type: "其他排口", spec: "800mm*600mm", manufacturer: "诚辉五金标识厂", manufacturingDate: "2025-08-10", installStatus: "已安装", region: "沛县", installTime: "2025-09-05", installLocation: "湖漫大堤内侧", installer: "钱八", photoUrl: "https://images.unsplash.com/photo-1621451537084-482c73073e0f?w=400&q=80", maintenanceRecords: [] },
+  { id: "SB-EB320312005", code: "SB-005", outfallId: "EB320312005", outfallName: "不牢河排污口", type: "工业排污口", spec: "1200mm*800mm", manufacturer: "徐州环宇标识智造有限公司", manufacturingDate: "2025-10-15", installStatus: "已安装", region: "邳州市", installTime: "2025-11-20", installLocation: "工厂排水渠出口处", installer: "张三", photoUrl: "https://images.unsplash.com/photo-1508344928928-7137b2f6f571?w=400&q=80", maintenanceRecords: [{ maintenanceTime: "2026-04-10", content: "更换破损反光膜", maintainer: "周二" }] },
 ];

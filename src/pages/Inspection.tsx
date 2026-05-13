@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, MapPin, Filter, Download, Eye, Edit, Trash2, Plus } from "lucide-react";
+import { Search, MapPin, Filter, Download, Eye, Plus, Upload, Edit, Trash2 } from "lucide-react";
 import { mockInspections } from "../lib/mockData";
 import { cn } from "../lib/utils";
 import Modal from "../components/Modal";
@@ -7,7 +7,7 @@ import Modal from "../components/Modal";
 export default function Inspection() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-  const [activeModal, setActiveModal] = useState<'add' | 'edit' | 'view' | 'delete' | null>(null);
+  const [activeModal, setActiveModal] = useState<'add' | 'view' | null>(null);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
 
   const filteredData = useMemo(() => {
@@ -18,7 +18,7 @@ export default function Inspection() {
     });
   }, [searchTerm, statusFilter]);
 
-  const handleOpenModal = (modal: 'add' | 'edit' | 'view' | 'delete', record?: any) => {
+  const handleOpenModal = (modal: 'add' | 'view', record?: any) => {
     setSelectedRecord(record || null);
     setActiveModal(modal);
   };

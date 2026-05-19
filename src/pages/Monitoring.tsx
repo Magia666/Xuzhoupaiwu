@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Filter, Activity, Droplets, Thermometer, Wind, AlertTriangle, FileText, Settings, Download, Eye, Clock, CheckCircle, XCircle, RefreshCw, BarChart2, Plus, Edit, Trash2 } from 'lucide-react';
+import { Search, Filter, Activity, Droplets, Thermometer, Wind, AlertTriangle, FileText, Settings, Download, Eye, Clock, CheckCircle, XCircle, RefreshCw, BarChart2, Plus, Edit, Trash2, Video } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from 'recharts';
 import Modal from '../components/Modal';
 import { mockMonitoringData, mockHistoricalData, mockReports, mockDevices, mockDetailedTrend, mockStats, mockWarnings } from '../lib/mockData';
@@ -163,7 +163,10 @@ function RealTimeMonitoring() {
               )}>
                 <div className="p-4 border-b border-gray-100/60 bg-white flex justify-between items-start gap-4">
                   <div>
-                     <h3 className="font-bold text-gray-900 text-lg hover:text-[#0056B3] transition-colors cursor-pointer">{row.name}</h3>
+                     <h3 className="font-bold text-gray-900 text-lg hover:text-[#0056B3] transition-colors cursor-pointer flex items-center gap-2">
+                       {row.name}
+                       {row.hasVideo && <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded text-[10px] border border-blue-100 flex items-center gap-1" title="支持视频监控"><Eye className="w-3 h-3" />视频</span>}
+                     </h3>
                      <p className="text-sm text-gray-400 font-mono mt-1">{row.id}</p>
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-2 text-right">
@@ -172,14 +175,45 @@ function RealTimeMonitoring() {
                   </div>
                 </div>
                 
+                {/* Devices List */}
+                {row.devices && row.devices.length > 0 && (
+                  <div className="px-4 py-3 bg-white border-b border-gray-100/60">
+                     <div className="text-xs text-gray-500 mb-2 font-medium flex items-center gap-1.5">
+                       <Settings className="w-3.5 h-3.5" /> 关联监测设备 ({row.devices.length})
+                     </div>
+                     <div className="flex flex-wrap gap-2">
+                       {row.devices.map((dev: any, idx: number) => (
+                         <div key={idx} className={cn(
+                           "flex items-center gap-1.5 text-xs border rounded-md px-2 py-1 transition-colors",
+                           dev.status === '正常' ? "bg-green-50/50 border-green-200/50 text-green-700" :
+                           dev.status === '故障' ? "bg-red-50/50 border-red-200/50 text-red-700" :
+                           "bg-gray-50/50 border-gray-200/50 text-gray-600"
+                         )}>
+                           <span className={cn(
+                             "w-1.5 h-1.5 rounded-full block shrink-0",
+                             dev.status === '正常' ? "bg-green-500" : 
+                             dev.status === '故障' ? "bg-red-500" : "bg-gray-400"
+                           )}></span>
+                           <span className="truncate max-w-[120px]" title={dev.name}>{dev.name}</span>
+                         </div>
+                       ))}
+                     </div>
+                  </div>
+                )}
+                
                 <div className="p-3.5 bg-gray-50/50">
-                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5">
                       <MetricItem label="COD" value={row.cod !== null ? row.cod : '--'} unit="mg/L" limit="40" isAlert={row.cod != null && row.cod > 40} />
                       <MetricItem label="氨氮" value={row.nh3n !== null ? row.nh3n : '--'} unit="mg/L" limit="2.0" isAlert={row.nh3n != null && row.nh3n > 2.0} />
                       <MetricItem label="总磷" value={row.tp !== null ? row.tp : '--'} unit="mg/L" limit="0.2" isAlert={row.tp != null && row.tp > 0.2} />
                       <MetricItem label="总氮" value={row.tn !== null ? row.tn : '--'} unit="mg/L" limit="1.5" isAlert={row.tn != null && row.tn > 1.5} />
                       <MetricItem label="pH" value={row.ph !== null ? row.ph : '--'} unit="" limit="6-9" isAlert={row.ph != null && (row.ph < 6 || row.ph > 9)} />
-                      <MetricItem label="流量" value={row.flow !== null ? row.flow : '--'} unit="m³/h" />
+                      <MetricItem label="电导率" value={row.conductivity !== null ? row.conductivity : '--'} unit="μS/cm" />
+                      <MetricItem label="溶解氧" value={row.do !== null ? row.do : '--'} unit="mg/L" limit="2-10" />
+                      <MetricItem label="浊度" value={row.turbidity !== null ? row.turbidity : '--'} unit="NTU" />
+                      <MetricItem label="温度" value={row.temp !== null ? row.temp : '--'} unit="°C" />
+                      <MetricItem label="瞬时流量" value={row.instFlow !== null ? row.instFlow : '--'} unit="m³/h" />
+                      <MetricItem label="累计流量" value={row.cumFlow !== null ? row.cumFlow : '--'} unit="m³" />
                    </div>
                 </div>
               </div>
@@ -197,8 +231,6 @@ function RealTimeMonitoring() {
 }
 
 function HistoricalData() {
-  const [viewMode, setViewMode] = useState<'list' | 'chart'>('list');
-
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -229,8 +261,6 @@ function HistoricalData() {
             <select className="px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-[#0056B3] bg-white w-32">
               <option>实时数据</option>
               <option>小时均值</option>
-              <option>日均值</option>
-              <option>月均值</option>
             </select>
           </div>
           <button className="px-4 py-2 bg-[#0056B3] text-white rounded-lg hover:bg-[#004494] text-sm font-medium transition-colors">
@@ -239,20 +269,6 @@ function HistoricalData() {
         </div>
         
         <div className="flex gap-2">
-          <div className="flex border border-gray-200 rounded-lg overflow-hidden bg-gray-50 p-1">
-            <button
-              onClick={() => setViewMode('list')}
-              className={cn("px-3 py-1.5 text-sm font-medium rounded-md flex items-center gap-1.5 transition-colors", viewMode === 'list' ? 'bg-white shadow-sm text-[#0056B3]' : 'text-gray-500 hover:text-gray-700')}
-            >
-              <FileText className="w-4 h-4" /> 列表视图
-            </button>
-            <button
-              onClick={() => setViewMode('chart')}
-              className={cn("px-3 py-1.5 text-sm font-medium rounded-md flex items-center gap-1.5 transition-colors", viewMode === 'chart' ? 'bg-white shadow-sm text-[#0056B3]' : 'text-gray-500 hover:text-gray-700')}
-            >
-              <BarChart2 className="w-4 h-4" /> 图表视图
-            </button>
-          </div>
           <button className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors flex items-center gap-2">
             <Download className="w-4 h-4" />
             导出Excel
@@ -260,69 +276,44 @@ function HistoricalData() {
         </div>
       </div>
 
-      {viewMode === 'chart' ? (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <h3 className="text-base font-semibold text-gray-900 mb-6 flex items-center gap-2">
-            <BarChart2 className="w-5 h-5 text-[#0056B3]" />
-            COD 趋势分析 (mg/L)
-          </h3>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockHistoricalData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12 }} dx={-10} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#F9FAFB' }}
-                  itemStyle={{ color: '#F9FAFB' }}
-                />
-                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                <Line type="monotone" dataKey="COD" name="监测值" stroke="#0056B3" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                <Line type="step" dataKey="standardCOD" name="标准限值 (40)" stroke="#EF4444" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                  <th className="p-4 font-medium">监测时间</th>
-                  <th className="p-4 font-medium">监测参数</th>
-                  <th className="p-4 font-medium">监测值</th>
-                  <th className="p-4 font-medium">标准限值</th>
-                  <th className="p-4 font-medium">单位</th>
-                  <th className="p-4 font-medium">超标状态</th>
-                  <th className="p-4 font-medium">超标倍数</th>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                <th className="p-4 font-medium">监测时间</th>
+                <th className="p-4 font-medium">监测参数</th>
+                <th className="p-4 font-medium">监测值</th>
+                <th className="p-4 font-medium">标准限值</th>
+                <th className="p-4 font-medium">单位</th>
+                <th className="p-4 font-medium">超标状态</th>
+                <th className="p-4 font-medium">超标倍数</th>
+              </tr>
+            </thead>
+            <tbody className="text-sm divide-y divide-gray-100">
+              {mockHistoricalData.map((row, i) => (
+                <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="p-4 text-gray-900">{row.time}</td>
+                  <td className="p-4 text-gray-600">COD</td>
+                  <td className="p-4 font-mono text-gray-900">{row.COD}</td>
+                  <td className="p-4 font-mono text-gray-500">{row.standardCOD}</td>
+                  <td className="p-4 text-gray-500">mg/L</td>
+                  <td className="p-4">
+                    {row.COD > row.standardCOD ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">超标</span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">达标</span>
+                    )}
+                  </td>
+                  <td className="p-4 font-mono text-gray-500">
+                    {row.COD > row.standardCOD ? ((row.COD - row.standardCOD) / row.standardCOD).toFixed(2) : '--'}
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="text-sm divide-y divide-gray-100">
-                {mockHistoricalData.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="p-4 text-gray-900">{row.time}</td>
-                    <td className="p-4 text-gray-600">COD</td>
-                    <td className="p-4 font-mono text-gray-900">{row.COD}</td>
-                    <td className="p-4 font-mono text-gray-500">{row.standardCOD}</td>
-                    <td className="p-4 text-gray-500">mg/L</td>
-                    <td className="p-4">
-                      {row.COD > row.standardCOD ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">超标</span>
-                      ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">达标</span>
-                      )}
-                    </td>
-                    <td className="p-4 font-mono text-gray-500">
-                      {row.COD > row.standardCOD ? ((row.COD - row.standardCOD) / row.standardCOD).toFixed(2) : '--'}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
     </div>
   );
 }

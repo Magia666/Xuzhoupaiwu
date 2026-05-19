@@ -384,7 +384,12 @@ function MonitoringList({ outfallId }: { outfallId: string, onOpenModal: (type: 
                 <th className="py-3 px-4 font-medium">总磷 (mg/L)</th>
                 <th className="py-3 px-4 font-medium">总氮 (mg/L)</th>
                 <th className="py-3 px-4 font-medium">pH</th>
-                <th className="py-3 px-4 font-medium">流量 (m³/h)</th>
+                <th className="py-3 px-4 font-medium">电导率 (μS/cm)</th>
+                <th className="py-3 px-4 font-medium">溶解氧 (mg/L)</th>
+                <th className="py-3 px-4 font-medium">浊度 (NTU)</th>
+                <th className="py-3 px-4 font-medium">温度 (°C)</th>
+                <th className="py-3 px-4 font-medium">瞬时流量 (m³/h)</th>
+                <th className="py-3 px-4 font-medium">累计流量 (m³)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -401,7 +406,12 @@ function MonitoringList({ outfallId }: { outfallId: string, onOpenModal: (type: 
                   <td className="py-3 px-4 text-gray-600">{item.tp ?? '-'}</td>
                   <td className="py-3 px-4 text-gray-600">{item.tn ?? '-'}</td>
                   <td className="py-3 px-4 text-gray-600">{item.ph ?? '-'}</td>
-                  <td className="py-3 px-4 text-gray-600">{item.flow ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.conductivity ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.do ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.turbidity ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.temp ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.instFlow ?? '-'}</td>
+                  <td className="py-3 px-4 text-gray-600">{item.cumFlow ?? '-'}</td>
                 </tr>
               ))}
             </tbody>

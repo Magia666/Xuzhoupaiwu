@@ -92,14 +92,98 @@ export const mockOutfalls = [
 ];
 
 export const mockMonitoringData = [
-  { id: "EB320312001", name: "奎河张庄排污口", cod: 15.2, nh3n: 0.5, tp: 0.1, tn: 1.2, ph: 7.2, flow: 120, status: "正常", lastUpdate: "2026-03-18 10:30:00" },
-  { id: "EB320312002", name: "房亭河大吴排污口", cod: 45.5, nh3n: 2.1, tp: 0.4, tn: 3.5, ph: 6.8, flow: 350, status: "故障", lastUpdate: "2026-03-18 10:30:00" },
-  { id: "EB320312003", name: "故黄河汉王排污口", cod: null, nh3n: null, tp: null, tn: null, ph: null, flow: null, status: "断连", lastUpdate: "2026-03-17 15:00:00" },
-  { id: "EB320312005", name: "不牢河排污口", cod: 12.1, nh3n: 0.3, tp: 0.05, tn: 0.8, ph: 7.5, flow: 80, status: "正常", lastUpdate: "2026-03-18 10:30:00" },
-  { id: "EB320312007", name: "丁万河排污口", cod: 18.4, nh3n: 0.8, tp: 0.15, tn: 1.5, ph: 7.1, flow: 150, status: "正常", lastUpdate: "2026-03-18 10:45:00" },
-  { id: "EB320312008", name: "京杭运河排污口", cod: 55.2, nh3n: 3.5, tp: 0.6, tn: 4.2, ph: 6.5, flow: 420, status: "正常", lastUpdate: "2026-03-18 10:45:00" },
-  { id: "EB320312009", name: "废黄河排污口", cod: 22.1, nh3n: 1.1, tp: 0.2, tn: 1.8, ph: 7.3, flow: 95, status: "正常", lastUpdate: "2026-03-18 10:50:00" },
-  { id: "EB320312011", name: "新沂河排污口", cod: 14.5, nh3n: 0.4, tp: 0.08, tn: 1.0, ph: 7.6, flow: 110, status: "正常", lastUpdate: "2026-03-18 10:15:00" },
+  { 
+    id: "EB320312001", name: "奎河张庄排污口", cod: 15.2, nh3n: 0.5, tp: 0.1, tn: 1.2, ph: 7.2, conductivity: 450, do: 6.5, turbidity: 12, temp: 18.5, instFlow: 120, cumFlow: 25400, hasVideo: true, status: "正常", lastUpdate: "2026-03-18 10:30:00",
+    devices: [
+      { name: "水质微型站 WQ-2000", type: "水质", status: "正常" },
+      { name: "明渠非接触流量计", type: "流量", status: "正常" },
+      { name: "排口全景带AI云台", type: "视频", status: "正常" }
+    ]
+  },
+  { 
+    id: "EB320312002", name: "房亭河大吴排污口", cod: 45.5, nh3n: 2.1, tp: 0.4, tn: 3.5, ph: 6.8, conductivity: 600, do: 3.2, turbidity: 45, temp: 19.1, instFlow: 350, cumFlow: 45200, hasVideo: true, status: "故障", lastUpdate: "2026-03-18 10:30:00",
+    devices: [
+      { name: "水质自动分析仪", type: "水质", status: "故障" },
+      { name: "超声波流量计", type: "流量", status: "正常" },
+      { name: "固定式摄像头", type: "视频", status: "正常" }
+    ]
+  },
+  { 
+    id: "EB320312003", name: "故黄河汉王排污口", cod: null, nh3n: null, tp: null, tn: null, ph: null, conductivity: null, do: null, turbidity: null, temp: null, instFlow: null, cumFlow: null, hasVideo: false, status: "断连", lastUpdate: "2026-03-17 15:00:00",
+    devices: [
+      { name: "简易水质监测浮标", type: "水质", status: "断连" }
+    ]
+  },
+  { 
+    id: "EB320312005", name: "不牢河排污口", cod: 12.1, nh3n: 0.3, tp: 0.05, tn: 0.8, ph: 7.5, conductivity: 320, do: 7.1, turbidity: 8, temp: 18.0, instFlow: 80, cumFlow: 12500, hasVideo: true, status: "正常", lastUpdate: "2026-03-18 10:30:00",
+    devices: [
+      { name: "多参数水质变送器", type: "水质", status: "正常" },
+      { name: "排口高清球机", type: "视频", status: "正常" }
+    ]
+  },
+  { 
+    id: "EB320312007", name: "丁万河排污口", cod: 18.4, nh3n: 0.8, tp: 0.15, tn: 1.5, ph: 7.1, conductivity: 410, do: 6.8, turbidity: 15, temp: 18.2, instFlow: 150, cumFlow: 31000, hasVideo: true, status: "正常", lastUpdate: "2026-03-18 10:45:00",
+    devices: [
+      { name: "一体化监测机柜", type: "水质", status: "正常" },
+      { name: "雷达流量计", type: "流量", status: "正常" }
+    ]
+  },
+  { 
+    id: "EB320312008", name: "京杭运河排污口", cod: 55.2, nh3n: 3.5, tp: 0.6, tn: 4.2, ph: 6.5, conductivity: 850, do: 2.5, turbidity: 60, temp: 19.5, instFlow: 420, cumFlow: 85000, hasVideo: false, status: "正常", lastUpdate: "2026-03-18 10:45:00",
+    devices: [
+      { name: "污水厂总排口水质站", type: "水质", status: "正常" },
+      { name: "巴歇尔槽流量计", type: "流量", status: "正常" }
+    ]
+  },
+  { 
+    id: "EB320312009", name: "废黄河排污口", cod: 22.1, nh3n: 1.1, tp: 0.2, tn: 1.8, ph: 7.3, conductivity: 480, do: 5.8, turbidity: 18, temp: 18.6, instFlow: 95, cumFlow: 19800, hasVideo: true, status: "正常", lastUpdate: "2026-03-18 10:50:00",
+    devices: [
+      { name: "常规五参数分析仪", type: "水质", status: "正常" },
+      { name: "低照度监控摄像头", type: "视频", status: "正常" }
+    ]
+  },
+  { 
+    id: "EB320312011", name: "新沂河排污口", cod: 14.5, nh3n: 0.4, tp: 0.08, tn: 1.0, ph: 7.6, conductivity: 350, do: 7.5, turbidity: 10, temp: 17.8, instFlow: 110, cumFlow: 22000, hasVideo: true, status: "正常", lastUpdate: "2026-03-18 10:15:00",
+    devices: [
+      { name: "水质自动监测仪", type: "水质", status: "正常" },
+      { name: "电磁流量计", type: "流量", status: "正常" },
+      { name: "星光级网络摄像机", type: "视频", status: "正常" }
+    ]
+  },
+  ...Array.from({ length: 28 }).map((_, i) => {
+    const isOffline = Math.random() < 0.1;
+    const isWarning = Math.random() < 0.15 && !isOffline;
+    const hasVideo = Math.random() > 0.3;
+    
+    // Generate devices list
+    const devices = [
+      { name: `水质类监测仪 - DB${i}`, type: "水质", status: isOffline ? "断连" : isWarning ? "故障" : "正常" },
+      { name: `流量监测仪 - FL${i}`, type: "流量", status: isOffline ? "断连" : "正常" }
+    ];
+    if (hasVideo) {
+      devices.push({ name: `监控球机 - CA${i}`, type: "视频", status: isOffline ? "断连" : "正常" });
+    }
+
+    return {
+      id: `EB3203121${String(i).padStart(2, '0')}`,
+      name: `新增自动监测点位-${i+1}`,
+      cod: isOffline ? null : Number((Math.random() * (isWarning ? 30 : 20) + 10).toFixed(1)),
+      nh3n: isOffline ? null : Number((Math.random() * (isWarning ? 3 : 1) + 0.1).toFixed(2)),
+      tp: isOffline ? null : Number((Math.random() * (isWarning ? 0.6 : 0.2) + 0.02).toFixed(2)),
+      tn: isOffline ? null : Number((Math.random() * (isWarning ? 4 : 2) + 0.5).toFixed(2)),
+      ph: isOffline ? null : Number((Math.random() * 2 + 6.5).toFixed(1)),
+      conductivity: isOffline ? null : Math.floor(Math.random() * 500 + 300),
+      do: isOffline ? null : Number((Math.random() * 4 + 4).toFixed(1)),
+      turbidity: isOffline ? null : Math.floor(Math.random() * 30 + 5),
+      temp: isOffline ? null : Number((Math.random() * 5 + 15).toFixed(1)),
+      instFlow: isOffline ? null : Math.floor(Math.random() * 500 + 50),
+      cumFlow: isOffline ? null : Math.floor(Math.random() * 100000 + 10000),
+      hasVideo: hasVideo,
+      status: isOffline ? "断连" : isWarning ? "故障" : "正常",
+      lastUpdate: "2026-03-18 11:30:00",
+      devices
+    };
+  })
 ];
 
 export const mockHistoricalData = [
@@ -150,13 +234,13 @@ export const mockDetailedTrend = [
 
 export const mockWarnings = [
   { id: "W20260318001", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "水质超标预警", level: 1, time: "2026-03-18 10:23:00", status: "待处理", desc: "COD超标2.5倍" },
-  { id: "W20260318011", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "水质超标预警", level: 1, time: "2026-03-18 06:10:00", status: "待处理", desc: "COD超标1.5倍" },
+  { id: "W20260318011", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "水质超标预警", level: 1, time: "2026-03-10 06:10:00", status: "待处理", desc: "COD超标1.5倍(超期未处置)" }, // explicitly make it older for overdue
   { id: "W20260317005", outfallId: "EB320312002", outfallName: "房亭河大吴排污口", type: "水质超标预警", level: 1, time: "2026-03-17 22:45:00", status: "处理中", desc: "COD超标1.8倍" },
-  { id: "W20260318002", outfallId: "EB320312003", outfallName: "故黄河汉王排污口", type: "设备故障预警", level: 2, time: "2026-03-18 09:15:00", status: "处理中", desc: "设备离线超6小时" },
-  { id: "W20260317001", outfallId: "EB320312001", outfallName: "奎河张庄排污口", type: "水质超标预警", level: 3, time: "2026-03-17 14:30:00", status: "已完成", desc: "氨氮超标0.5倍" },
+  { id: "W20260318002", outfallId: "EB320312003", outfallName: "故黄河汉王排污口", type: "设备故障预警", level: 2, time: "2026-03-18 09:15:00", status: "已驳回", desc: "设备离线超6小时" },
+  { id: "W20260317001", outfallId: "EB320312001", outfallName: "奎河张庄排污口", type: "水质超标预警", level: 3, time: "2026-03-17 14:30:00", status: "已完成", desc: "氨氮超标0.5倍", details: { measures: "现场排查确认管网溢流，联系了养护单位进行疏通", result: "管网已疏通，水质恢复正常", handler: "李思", handleTime: "2026-03-17 18:30:00" } },
   { id: "W20260318003", outfallId: "EB320312008", outfallName: "京杭运河排污口", type: "水质超标预警", level: 1, time: "2026-03-18 10:45:00", status: "待处理", desc: "总磷超标3.0倍" },
-  { id: "W20260317006", outfallId: "EB320312008", outfallName: "京杭运河排污口", type: "水质超标预警", level: 2, time: "2026-03-17 08:30:00", status: "已完成", desc: "总磷超标1.2倍" },
-  { id: "W20260318004", outfallId: "EB320312010", outfallName: "骆马湖排污口", type: "设备故障预警", level: 2, time: "2026-03-18 08:20:00", status: "待处理", desc: "数据采集仪通信中断" },
+  { id: "W20260317006", outfallId: "EB320312008", outfallName: "京杭运河排污口", type: "水质超标预警", level: 2, time: "2026-03-17 08:30:00", status: "已完成", desc: "总磷超标1.2倍", details: { measures: "增加了除磷药剂投加量", result: "出水总磷达标", handler: "张三", handleTime: "2026-03-17 12:00:00" } },
+  { id: "W20260318004", outfallId: "EB320312010", outfallName: "骆马湖排污口", type: "设备故障预警", level: 2, time: "2026-03-18 08:20:00", status: "待审核", desc: "数据采集仪通信中断", details: { measures: "重启数据采集仪，更换通讯卡", result: "通讯恢复正常，数据上传成功", handler: "周五", handleTime: "2026-03-18 10:00:00" } },
   { id: "W20260316002", outfallId: "EB320312012", outfallName: "沭河排污口", type: "水质超标预警", level: 3, time: "2026-03-16 11:10:00", status: "已完成", desc: "pH值异常" },
   { id: "W20260318005", outfallId: "EB320312004", outfallName: "微山湖沿岸排污口", type: "设备故障预警", level: 2, time: "2026-03-18 11:05:00", status: "处理中", desc: "流量计数据异常" },
 ];

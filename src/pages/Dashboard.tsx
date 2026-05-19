@@ -82,12 +82,12 @@ export default function Dashboard() {
         
         {/* Far Left Column: Water Quality & Analysis */}
         <div className="grid grid-rows-2 gap-6 min-h-0 h-full">
-          {/* Module 3: Water Quality Distribution */}
+          {/* Module 3: Outfall Type Distribution */}
           <div className="bg-white rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)] border border-slate-100 p-5 flex-1 flex flex-col min-h-0">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold text-slate-800 tracking-tight flex items-center gap-2">
                 <Droplets className="w-4 h-4 text-blue-500" />
-                全区水质类别分布
+                排污口类型分布
               </h3>
               <button onClick={() => navigate('/analysis')} className="text-xs text-blue-600 font-medium hover:text-blue-700 hover:underline">查看详情</button>
             </div>
@@ -96,10 +96,10 @@ export default function Dashboard() {
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'I-II类', value: mockOutfalls.filter(o => o.waterQuality === 'I类' || o.waterQuality === 'II类').length },
-                      { name: 'III类', value: mockOutfalls.filter(o => o.waterQuality === 'III类').length },
-                      { name: 'IV类', value: mockOutfalls.filter(o => o.waterQuality === 'IV类').length },
-                      { name: 'V类及以下', value: mockOutfalls.filter(o => o.waterQuality === 'V类').length },
+                      { name: '工业排口', value: mockOutfalls.filter(o => o.type.includes('工业')).length },
+                      { name: '城镇污水厂', value: mockOutfalls.filter(o => o.type.includes('城镇污水')).length },
+                      { name: '农业排口', value: mockOutfalls.filter(o => o.type.includes('农业')).length },
+                      { name: '其他', value: mockOutfalls.filter(o => !o.type.includes('工业') && !o.type.includes('城镇污水') && !o.type.includes('农业')).length },
                     ]}
                     cx="50%"
                     cy="50%"
@@ -113,7 +113,7 @@ export default function Dashboard() {
                     <Cell fill="#3B82F6" />
                     <Cell fill="#10B981" />
                     <Cell fill="#F59E0B" />
-                    <Cell fill="#EF4444" />
+                    <Cell fill="#8B5CF6" />
                   </Pie>
                   <Tooltip 
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
